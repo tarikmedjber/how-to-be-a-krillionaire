@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Who Wants to Be a Krillianaire — Host</title>
+<title>Who Wants to Be a Krillionaire — Host</title>
 <style>
 :root{--bg:#f6f5f2;--panel:#fff;--ink:#1d1d1f;--mute:#6b6b70;--line:#e3e1dc;--accent:#5b4bdb;--ok:#1f8a4c;--warn:#b7791f;--bad:#c53030;--okbg:#e6f4ec;--warnbg:#fdf3e1;--badbg:#fde8e8;--heart:#e0245e}
 *{box-sizing:border-box}
@@ -542,11 +542,10 @@ function render(){
   // question list
   const groups={};
   allQs().filter(x=>!qFilter||(x.q+" "+x.cat).toLowerCase().includes(qFilter.toLowerCase())).forEach(x=>(groups[x.cat]=groups[x.cat]||[]).push(x));
-  const curCat = q && q.cat;
   const ORDER=["Dev: Languages","Dev: Web","Dev: Tools & Infra","Dev: CS","Countries","Capitals & Cities","US States","Elements","Science & Space","Maths","Sport","Film & TV","Music","Games","Culture","Food & Drink","Everyday","Custom"];
   const rank=c=>{const i=ORDER.indexOf(c);return i<0?99:i};
   const qlist = Object.entries(groups).sort((x,y)=>rank(x[0])-rank(y[0])).map(([c,qs])=>{
-    const open = qFilter || openCats.has(c) || c===curCat;
+    const open = qFilter || openCats.has(c);
     const left = qs.filter(x=>!S.used.includes(x.id)).length;
     return `<div class="qcat" data-cat="${esc(c)}">${open?"▾":"▸"} ${esc(c)} <span class="n">${left}/${qs.length}</span></div>`+(!open?"":qs.map(x=>
     `<div class="qitem ${x.id===S.current?"active":""} ${S.used.includes(x.id)?"used":""}" data-q="${x.id}"><span>${esc(x.q)}</span><span class="n">${parseAnswers(x.id[0]==="b"?BANK[+x.id.slice(1)]:S.custom[+x.id.slice(1)]).length}${x.open?"+":""}</span></div>`).join(""));
@@ -556,7 +555,7 @@ function render(){
 
   $("#app").innerHTML = `
   <header>
-    <h1>🎯 Who Wants to Be a Krillianaire — Host</h1>
+    <h1>🎯 Who Wants to Be a Krillionaire — Host</h1>
     <button id="board">Open scoreboard window</button>
     <button id="undo" ${S.undo.length?"":"disabled"}>↶ Undo</button>
     <button id="newgame" class="danger">New game</button>
@@ -651,7 +650,7 @@ function updateRefHint(){
 
 function renderSetup(){
   $("#app").innerHTML = `<div class="setup panel">
-    <h1>🎯 Who Wants to Be a Krillianaire</h1>
+    <h1>🎯 Who Wants to Be a Krillionaire</h1>
     <p class="meta">Everyone answers. If anyone else gives the same answer, you both lose a life. Last one standing wins.</p>
     <label>Players (one per line)</label>
     <textarea id="names" rows="10" placeholder="Alice\nBob\nCharlie">${esc(S.players.map(p=>p.name).join("\n"))}</textarea>
@@ -664,7 +663,7 @@ function renderSetup(){
 
 function renderBoard(){
   document.title="Scoreboard";
-  $("#app").innerHTML = `<header><h1>🎯 Who Wants to Be a Krillianaire — ${alive().length} still in</h1></header>
+  $("#app").innerHTML = `<header><h1>🎯 Who Wants to Be a Krillionaire — ${alive().length} still in</h1></header>
   <div class="board">${S.players.map(p=>`<div class="card ${p.lives<=0?"out":""}"><div class="name">${esc(p.name)}</div>${p.lives>0?hearts(p.lives,S.startLives):'<div style="font-size:28px">OUT</div>'}</div>`).join("")}</div>`;
 }
 
@@ -686,7 +685,7 @@ document.addEventListener("click",e=>{
   if(t.dataset.ref) return fillFromRef(t.dataset.ref);
   if(t.dataset.q||["rand","apply","clearAns"].includes(t.id)) lastAns=null;
   if(t.dataset.q && S.used.includes(t.dataset.q)) return alertBox("That question has already been used this game.");
-  if(t.dataset.q){ S.current=t.dataset.q; S.answers={}; S.overrides={}; S.secret.list=[]; S.secret.shown=false; aFilter=""; S.secret.on = alive().length<=2; return save(); }
+  if(t.dataset.q){ openCats.add(qById(t.dataset.q).cat); S.current=t.dataset.q; S.answers={}; S.overrides={}; S.secret.list=[]; S.secret.shown=false; aFilter=""; S.secret.on = alive().length<=2; return save(); }
   if(t.classList.contains("lv")){ S.startLives=+t.dataset.l; return save(); }
   if(t.dataset.dec||t.dataset.inc){ snapshot(); const p=S.players.find(x=>x.id==(t.dataset.dec||t.dataset.inc)); p.lives=Math.max(0,p.lives+(t.dataset.dec?-1:1)); return save(); }
   switch(t.id){
@@ -700,7 +699,7 @@ document.addEventListener("click",e=>{
     case "undo": return undo();
     case "board": return window.open(location.pathname+"#board","board","width=1100,height=700");
     case "rand": { const pool=allQs().filter(x=>!S.used.includes(x.id)&&x.id!==S.current); if(!pool.length) return; const x=pool[Math.floor(Math.random()*pool.length)];
-      S.current=x.id; S.answers={}; S.overrides={}; S.secret.list=[]; S.secret.shown=false; S.secret.on=alive().length<=2; aFilter=""; return save(); }
+      openCats.add(x.cat); S.current=x.id; S.answers={}; S.overrides={}; S.secret.list=[]; S.secret.shown=false; S.secret.on=alive().length<=2; aFilter=""; return save(); }
     case "apply": return applyRound();
     case "clearAns": S.answers={}; S.overrides={}; return save();
     case "hostRand": { const list=parseAnswers(qById(S.current)).filter(e=>!e.deb); S.answers.host=list[Math.floor(Math.random()*list.length)].canon; return save(); }
