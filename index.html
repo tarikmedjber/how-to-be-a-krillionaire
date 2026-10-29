@@ -1,0 +1,743 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who Wants to Be a Krillianaire — Host</title>
+<style>
+:root{--bg:#f6f5f2;--panel:#fff;--ink:#1d1d1f;--mute:#6b6b70;--line:#e3e1dc;--accent:#5b4bdb;--ok:#1f8a4c;--warn:#b7791f;--bad:#c53030;--okbg:#e6f4ec;--warnbg:#fdf3e1;--badbg:#fde8e8;--heart:#e0245e}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 16px}
+h1,h2,h3{margin:0}
+button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:#bbb}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.danger{color:var(--bad)}
+button.small{padding:2px 8px;font-size:12px}
+input,textarea,select{font:inherit;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;width:100%}
+header{display:flex;align-items:center;gap:12px;padding:12px 0;flex-wrap:wrap}
+header h1{font-size:18px;margin-right:auto}
+.grid{display:grid;grid-template-columns:270px 1fr 300px;gap:16px;align-items:start;padding-bottom:24px}
+@media(max-width:1100px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-bottom:10px}
+.qlist{max-height:70vh;overflow:auto;margin-top:8px}
+.qcat{font-size:12px;color:var(--mute);text-transform:uppercase;margin:6px 0 2px;padding:5px 6px;border-radius:6px;cursor:pointer;display:flex;gap:4px;font-weight:600}
+.qcat:hover{background:#f0eff9}
+.qcat .n{margin-left:auto;font-weight:400}
+.qitem{padding:6px 8px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:6px}
+.qitem:hover{background:#f0eff9}
+.qitem.active{background:var(--accent);color:#fff}
+.qitem.used{opacity:.45;text-decoration:line-through;cursor:not-allowed}
+.qitem.used:hover{background:none}
+.qitem .n{font-size:11px;opacity:.7;white-space:nowrap}
+.prompt{font-size:24px;font-weight:650;margin:4px 0 6px}
+.meta{color:var(--mute);font-size:12px}
+table{width:100%;border-collapse:collapse}
+td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:11px;color:var(--mute);text-transform:uppercase;font-weight:600}
+.badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:12px;margin:1px 2px 1px 0;white-space:nowrap}
+.b-ok{background:var(--okbg);color:var(--ok)}.b-warn{background:var(--warnbg);color:var(--warn)}.b-bad{background:var(--badbg);color:var(--bad)}
+.verdict-lose{color:var(--bad);font-weight:650}.verdict-safe{color:var(--ok);font-weight:650}
+.answers{columns:3 160px;column-gap:16px;margin-top:8px;max-height:45vh;overflow:auto}
+.answers div{break-inside:avoid;padding:2px 4px;border-radius:4px}
+.answers .taken{background:#fde8e8;color:var(--bad);font-weight:600}
+.answers .picked{background:var(--okbg);color:var(--ok);font-weight:600}
+.answers .deb{color:var(--warn)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.player{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.player .name{flex:1;font-weight:600}
+.player.out{opacity:.4}.player.out .name{text-decoration:line-through}
+.hearts{color:var(--heart);letter-spacing:1px;font-size:16px}
+.hearts .e{color:#ddd}
+.log{font-size:12px;color:var(--mute);max-height:220px;overflow:auto;margin-top:8px}
+.log div{padding:3px 0;border-bottom:1px dashed var(--line)}
+.hostrow td{background:#f1eeff;border-bottom:none}
+.hostrow td:first-child{border-radius:10px 0 0 10px;padding-left:10px}
+.hostrow td:last-child{border-radius:0 10px 10px 0}
+.setup{max-width:520px;margin:40px auto}
+.setup label{display:block;font-weight:600;margin:14px 0 6px}
+.winner{background:linear-gradient(90deg,#ffe58a,#ffd1e8);padding:14px;border-radius:12px;font-size:20px;font-weight:700;text-align:center;margin-bottom:12px}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;padding:24px 0}
+.board .card{background:#fff;border-radius:16px;padding:20px;border:1px solid var(--line);text-align:center}
+.board .card .name{font-size:28px;font-weight:700}
+.board .card .hearts{font-size:34px}
+.board .card.out{opacity:.35}
+.anscell{position:relative}
+.anscell input.target{outline:2px solid var(--accent);outline-offset:1px}
+.answers div[data-ref]{cursor:pointer}
+.answers div[data-ref]:hover{outline:1px solid var(--accent)}
+.sug{position:absolute;left:4px;right:4px;top:calc(100% - 4px);z-index:5;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.12);overflow:hidden}
+.sug div{padding:6px 10px;cursor:pointer}
+.sug div.on,.sug div:hover{background:#f0eff9}
+.sug .meta{margin-left:4px}
+[hidden]{display:none!important}
+</style>
+
+<div id="app"></div>
+
+<script>
+// ---------- Question bank ----------
+// Answer format: "Canonical|alias|alias"; trailing "*" = debatable (host's call).
+// open:true = list isn't exhaustive, unlisted answers default to valid.
+const BANK = [
+ {cat:"US States",key:"states",q:"Name a US state",a:"Alabama,Alaska,Arizona,Arkansas,California,Colorado,Connecticut,Delaware,Florida,Georgia,Hawaii,Idaho,Illinois,Indiana,Iowa,Kansas,Kentucky,Louisiana,Maine,Maryland,Massachusetts,Michigan,Minnesota,Mississippi,Missouri,Montana,Nebraska,Nevada,New Hampshire,New Jersey,New Mexico,New York,North Carolina,North Dakota,Ohio,Oklahoma,Oregon,Pennsylvania,Rhode Island,South Carolina,South Dakota,Tennessee,Texas,Utah,Vermont,Virginia,Washington,West Virginia,Wisconsin,Wyoming"},
+ {cat:"US States",q:"Name a US state beginning with M or N",a:"Maine,Maryland,Massachusetts,Michigan,Minnesota,Mississippi,Missouri,Montana,Nebraska,Nevada,New Hampshire,New Jersey,New Mexico,New York,North Carolina,North Dakota"},
+ {cat:"Countries",q:"Name a country in Europe",a:"Albania,Andorra,Austria,Belarus,Belgium,Bosnia and Herzegovina|Bosnia,Bulgaria,Croatia,Cyprus,Czech Republic|Czechia,Denmark,Estonia,Finland,France,Germany,Greece,Hungary,Iceland,Ireland|Republic of Ireland|Eire,Italy,Kosovo*,Latvia,Liechtenstein,Lithuania,Luxembourg,Malta,Moldova,Monaco,Montenegro,Netherlands|Holland|The Netherlands,North Macedonia|Macedonia,Norway,Poland,Portugal,Romania,Russia,San Marino,Serbia,Slovakia,Slovenia,Spain,Sweden,Switzerland,Ukraine,United Kingdom|UK|Britain|Great Britain,Vatican City|Holy See|Vatican,Turkey*|Turkiye,Georgia*,Armenia*,Azerbaijan*,Kazakhstan*,England*,Scotland*,Wales*,Northern Ireland*"},
+ {cat:"Countries",q:"Name a country in Africa",a:"Algeria,Angola,Benin,Botswana,Burkina Faso,Burundi,Cape Verde|Cabo Verde,Cameroon,Central African Republic|CAR,Chad,Comoros,Republic of the Congo|Congo|Congo-Brazzaville,Democratic Republic of the Congo|DRC|DR Congo|Congo-Kinshasa,Djibouti,Egypt,Equatorial Guinea,Eritrea,Eswatini|Swaziland,Ethiopia,Gabon,Gambia|The Gambia,Ghana,Guinea,Guinea-Bissau,Ivory Coast|Cote d'Ivoire,Kenya,Lesotho,Liberia,Libya,Madagascar,Malawi,Mali,Mauritania,Mauritius,Morocco,Mozambique,Namibia,Niger,Nigeria,Rwanda,Sao Tome and Principe,Senegal,Seychelles,Sierra Leone,Somalia,South Africa,South Sudan,Sudan,Tanzania,Togo,Tunisia,Uganda,Zambia,Zimbabwe,Western Sahara*,Somaliland*"},
+ {cat:"Countries",q:"Name a country beginning with S",a:"Saint Kitts and Nevis|St Kitts and Nevis,Saint Lucia|St Lucia,Saint Vincent and the Grenadines|St Vincent,Samoa,San Marino,Sao Tome and Principe,Saudi Arabia,Senegal,Serbia,Seychelles,Sierra Leone,Singapore,Slovakia,Slovenia,Solomon Islands,Somalia,South Africa,South Korea,South Sudan,Spain,Sri Lanka,Sudan,Suriname,Sweden,Switzerland,Syria,Scotland*"},
+ {cat:"Countries",q:"Name a country in South America",a:"Argentina,Bolivia,Brazil,Chile,Colombia,Ecuador,Guyana,Paraguay,Peru,Suriname,Uruguay,Venezuela,French Guiana*,Falkland Islands*"},
+ {cat:"Capitals & Cities",q:"Name a European capital city",a:"Tirana,Andorra la Vella,Vienna,Minsk,Brussels,Sarajevo,Sofia,Zagreb,Nicosia,Prague,Copenhagen,Tallinn,Helsinki,Paris,Berlin,Athens,Budapest,Reykjavik,Dublin,Rome,Pristina*,Riga,Vaduz,Vilnius,Luxembourg|Luxembourg City,Valletta,Chisinau,Monaco,Podgorica,Amsterdam,Skopje,Oslo,Warsaw,Lisbon,Bucharest,Moscow,San Marino,Belgrade,Bratislava,Ljubljana,Madrid,Stockholm,Bern|Berne,Kyiv|Kiev,London,Vatican City,Edinburgh*,Cardiff*,Belfast*,Ankara*,Tbilisi*,Yerevan*,Baku*,Astana*"},
+ {cat:"Countries",q:"Name a country that has hosted the Summer Olympics",a:"Greece,France,United States|USA|America|US,United Kingdom|UK|Britain|Great Britain|England,Sweden,Belgium,Netherlands|Holland,Germany|West Germany,Finland,Australia,Italy,Japan,Mexico,Canada,Russia|Soviet Union|USSR,South Korea|Korea,Spain,China,Brazil"},
+ {cat:"Capitals & Cities",q:"Name a London Underground line",a:"Bakerloo,Central,Circle,District,Hammersmith & City|Hammersmith and City,Jubilee,Metropolitan,Northern,Piccadilly,Victoria,Waterloo & City|Waterloo and City,Elizabeth*|Elizabeth line,DLR*"},
+ {cat:"Capitals & Cities",q:"Name a property / square on the UK Monopoly board",a:"Old Kent Road,Whitechapel Road,The Angel Islington|Angel Islington,Euston Road,Pentonville Road,Pall Mall,Whitehall,Northumberland Avenue,Bow Street,Marlborough Street,Vine Street,Strand,Fleet Street,Trafalgar Square,Leicester Square,Coventry Street,Piccadilly,Regent Street,Oxford Street,Bond Street,Park Lane,Mayfair,Kings Cross Station|Kings Cross,Marylebone Station|Marylebone,Fenchurch Street Station|Fenchurch Street,Liverpool Street Station|Liverpool Street,Electric Company,Water Works,Go*,Jail*,Free Parking*,Go To Jail*,Income Tax*,Super Tax*,Chance*,Community Chest*"},
+ {cat:"Elements",key:"elements",q:"Name a chemical element",a:"Hydrogen,Helium,Lithium,Beryllium,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Neon,Sodium,Magnesium,Aluminium|Aluminum,Silicon,Phosphorus,Sulfur|Sulphur,Chlorine,Argon,Potassium,Calcium,Scandium,Titanium,Vanadium,Chromium,Manganese,Iron,Cobalt,Nickel,Copper,Zinc,Gallium,Germanium,Arsenic,Selenium,Bromine,Krypton,Rubidium,Strontium,Yttrium,Zirconium,Niobium,Molybdenum,Technetium,Ruthenium,Rhodium,Palladium,Silver,Cadmium,Indium,Tin,Antimony,Tellurium,Iodine,Xenon,Caesium|Cesium,Barium,Lanthanum,Cerium,Praseodymium,Neodymium,Promethium,Samarium,Europium,Gadolinium,Terbium,Dysprosium,Holmium,Erbium,Thulium,Ytterbium,Lutetium,Hafnium,Tantalum,Tungsten,Rhenium,Osmium,Iridium,Platinum,Gold,Mercury,Thallium,Lead,Bismuth,Polonium,Astatine,Radon,Francium,Radium,Actinium,Thorium,Protactinium,Uranium,Neptunium,Plutonium,Americium,Curium,Berkelium,Californium,Einsteinium,Fermium,Mendelevium,Nobelium,Lawrencium,Rutherfordium,Dubnium,Seaborgium,Bohrium,Hassium,Meitnerium,Darmstadtium,Roentgenium,Copernicium,Nihonium,Flerovium,Moscovium,Livermorium,Tennessine,Oganesson"},
+ {cat:"Science & Space",q:"Name a planet in our solar system",a:"Mercury,Venus,Earth,Mars,Jupiter,Saturn,Uranus,Neptune,Pluto*"},
+ {cat:"Science & Space",q:"Name a Greek letter",a:"Alpha,Beta,Gamma,Delta,Epsilon,Zeta,Eta,Theta,Iota,Kappa,Lambda,Mu,Nu,Xi,Omicron,Pi,Rho,Sigma,Tau,Upsilon,Phi,Chi,Psi,Omega"},
+ {cat:"Dev: Languages",key:"langs",q:"Name a programming language",open:true,a:"Python,JavaScript,TypeScript,Java,C,C++,C#|C Sharp,Go|Golang,Rust,Ruby,PHP,Swift,Kotlin,Scala,R,MATLAB,Perl,Haskell,Lua,Dart,Julia,Elixir,Erlang,Clojure,F#,Fortran,COBOL,Pascal,Delphi,BASIC,Visual Basic|VB,Assembly,Lisp,Scheme,Prolog,Objective-C,Groovy,Zig,OCaml,Smalltalk,Ada,SQL*,Bash*|Shell,HTML*,CSS*,Solidity,Elm,Nim,Crystal,Racket,Apex,ABAP,Scratch,Logo,PowerShell"},
+ {cat:"Sport",key:"pl",q:"Name a club that has played in the Premier League",a:"Arsenal,Aston Villa|Villa,Barnsley,Birmingham City|Birmingham,Blackburn Rovers|Blackburn,Blackpool,Bolton Wanderers|Bolton,AFC Bournemouth|Bournemouth,Bradford City|Bradford,Brentford,Brighton & Hove Albion|Brighton,Burnley,Cardiff City|Cardiff,Charlton Athletic|Charlton,Chelsea,Coventry City|Coventry,Crystal Palace|Palace,Derby County|Derby,Everton,Fulham,Huddersfield Town|Huddersfield,Hull City|Hull,Ipswich Town|Ipswich,Leeds United|Leeds,Leicester City|Leicester,Liverpool,Luton Town|Luton,Manchester City|Man City,Manchester United|Man United|Man Utd,Middlesbrough|Boro,Newcastle United|Newcastle,Norwich City|Norwich,Nottingham Forest|Forest,Oldham Athletic|Oldham,Portsmouth,Queens Park Rangers|QPR,Reading,Sheffield United,Sheffield Wednesday,Southampton,Stoke City|Stoke,Sunderland,Swansea City|Swansea,Swindon Town|Swindon,Tottenham Hotspur|Tottenham|Spurs,Watford,West Bromwich Albion|West Brom|WBA,West Ham United|West Ham,Wigan Athletic|Wigan,Wimbledon,Wolverhampton Wanderers|Wolves"},
+ {cat:"Sport",q:"Name a sport at the Paris 2024 Olympics",a:"Archery,Artistic Swimming|Synchronised Swimming,Athletics|Track and Field,Badminton,Basketball,3x3 Basketball,Boxing,Breaking|Breakdancing,Canoeing|Canoe|Kayaking,Cycling,Diving,Equestrian|Horse Riding|Dressage|Showjumping,Fencing,Football|Soccer,Golf,Gymnastics,Handball,Hockey|Field Hockey,Judo,Modern Pentathlon,Rowing,Rugby Sevens|Rugby,Sailing,Shooting,Skateboarding,Sport Climbing|Climbing,Surfing,Swimming,Table Tennis|Ping Pong,Taekwondo,Tennis,Trampoline,Triathlon,Volleyball,Beach Volleyball,Water Polo,Weightlifting,Wrestling,Marathon Swimming"},
+ {cat:"Film & TV",q:"Name a Pixar feature film",a:"Toy Story,A Bug's Life,Toy Story 2,Monsters Inc|Monsters Incorporated,Finding Nemo,The Incredibles|Incredibles,Cars,Ratatouille,WALL-E|Wall E,Up,Toy Story 3,Cars 2,Brave,Monsters University,Inside Out,The Good Dinosaur,Finding Dory,Cars 3,Coco,Incredibles 2,Toy Story 4,Onward,Soul,Luca,Turning Red,Lightyear,Elemental,Inside Out 2,Elio,Hoppers*,Toy Story 5*"},
+ {cat:"Film & TV",q:"Name an official (Eon) James Bond film",a:"Dr. No|Dr No,From Russia with Love,Goldfinger,Thunderball,You Only Live Twice,On Her Majesty's Secret Service|OHMSS,Diamonds Are Forever,Live and Let Die,The Man with the Golden Gun,The Spy Who Loved Me,Moonraker,For Your Eyes Only,Octopussy,A View to a Kill,The Living Daylights,Licence to Kill|License to Kill,GoldenEye,Tomorrow Never Dies,The World Is Not Enough,Die Another Day,Casino Royale,Quantum of Solace,Skyfall,Spectre,No Time to Die,Never Say Never Again*"},
+ {cat:"Music",q:"Name a Taylor Swift studio album",a:"Taylor Swift|Debut,Fearless,Speak Now,Red,1989,Reputation,Lover,Folklore,Evermore,Midnights,The Tortured Poets Department|TTPD,The Life of a Showgirl|Showgirl"},
+ {cat:"Film & TV",q:"Name a main character in Friends",a:"Rachel|Rachel Green,Monica|Monica Geller,Phoebe|Phoebe Buffay,Joey|Joey Tribbiani,Chandler|Chandler Bing,Ross|Ross Geller,Gunther*,Janice*,Mike*"},
+ {cat:"Culture",q:"Name a Shakespeare play",a:"All's Well That Ends Well,Antony and Cleopatra,As You Like It,The Comedy of Errors,Coriolanus,Cymbeline,Hamlet,Henry IV Part 1,Henry IV Part 2,Henry V,Henry VI Part 1,Henry VI Part 2,Henry VI Part 3,Henry VIII,Julius Caesar,King John,King Lear,Love's Labour's Lost,Macbeth,Measure for Measure,The Merchant of Venice,The Merry Wives of Windsor,A Midsummer Night's Dream,Much Ado About Nothing,Othello,Pericles,Richard II,Richard III,Romeo and Juliet,The Taming of the Shrew,The Tempest,Timon of Athens,Titus Andronicus,Troilus and Cressida,Twelfth Night,The Two Gentlemen of Verona,The Winter's Tale,The Two Noble Kinsmen*"},
+ {cat:"Culture",q:"Name a word in the NATO phonetic alphabet",a:"Alfa|Alpha,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett|Juliet,Kilo,Lima,Mike,November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey|Whisky,X-ray|Xray,Yankee,Zulu"},
+ {cat:"Culture",q:"Name a sign of the zodiac",a:"Aries,Taurus,Gemini,Cancer,Leo,Virgo,Libra,Scorpio,Sagittarius,Capricorn,Aquarius,Pisces"},
+ {cat:"Culture",q:"Name a month of the year",a:"January,February,March,April,May,June,July,August,September,October,November,December"},
+ {cat:"Culture",q:"Name a colour of the rainbow",a:"Red,Orange,Yellow,Green,Blue,Indigo,Violet|Purple*"},
+ {cat:"Food & Drink",q:"Name a fruit",open:true,a:"Apple,Apricot,Avocado,Banana,Blackberry,Blackcurrant,Blueberry,Cantaloupe,Cherry,Clementine,Coconut,Cranberry,Damson,Date,Dragon Fruit|Pitaya,Durian,Elderberry,Fig,Gooseberry,Grape,Grapefruit,Guava,Honeydew,Jackfruit,Kiwi|Kiwifruit,Kumquat,Lemon,Lime,Lychee|Litchi,Mango,Mangosteen,Melon,Mulberry,Nectarine,Olive*,Orange,Papaya,Passion Fruit,Peach,Pear,Persimmon|Sharon Fruit,Physalis,Pineapple,Plum,Pomegranate,Pomelo,Quince,Raspberry,Redcurrant,Rhubarb*,Satsuma,Starfruit|Carambola,Strawberry,Tangerine,Tomato*,Watermelon,Cucumber*,Lingonberry,Loganberry,Feijoa,Rambutan,Tamarind,Ugli Fruit"},
+ {cat:"Everyday",q:"Name a dog breed",open:true,a:"Labrador|Labrador Retriever,Golden Retriever,German Shepherd|Alsatian,Bulldog|English Bulldog,French Bulldog|Frenchie,Poodle,Beagle,Rottweiler,Dachshund|Sausage Dog,Boxer,Border Collie,Yorkshire Terrier|Yorkie,Chihuahua,Pug,Shih Tzu,Siberian Husky|Husky,Great Dane,Doberman,Cocker Spaniel,Springer Spaniel,Cavalier King Charles Spaniel|Cavalier,Jack Russell,Staffordshire Bull Terrier|Staffy|Staffie,Pomeranian,Maltese,Bichon Frise,Dalmatian,Greyhound,Whippet,Saint Bernard|St Bernard,Bernese Mountain Dog,Newfoundland,Akita,Shiba Inu,Samoyed,Corgi,Basset Hound,Bloodhound,Weimaraner,Vizsla,Pointer,Irish Setter,Afghan Hound,Schnauzer,West Highland Terrier|Westie,Scottish Terrier|Scottie,Border Terrier,Bull Terrier,Airedale,Collie|Rough Collie,Shetland Sheepdog|Sheltie,Old English Sheepdog,Chow Chow,Shar Pei,Mastiff,Bullmastiff,Lhasa Apso,Pekingese,Papillon,Cockapoo*,Labradoodle*,Cavapoo*,Malamute|Alaskan Malamute,Bedlington Terrier,Lurcher*,Rhodesian Ridgeback"},
+ {cat:"Everyday",q:"Name a car manufacturer",open:true,a:"Ford,Toyota,Honda,Nissan,Mazda,Subaru,Mitsubishi,Suzuki,Lexus,Volkswagen|VW,Audi,BMW,Mercedes|Mercedes-Benz,Porsche,Opel,Vauxhall,Renault,Peugeot,Citroen,Fiat,Alfa Romeo,Ferrari,Lamborghini,Maserati,Lancia,Volvo,Saab,Skoda,Seat,Cupra,Dacia,Tesla,Chevrolet,Cadillac,Buick,GMC,Chrysler,Dodge,Jeep,Lincoln,Hyundai,Kia,Genesis,Jaguar,Land Rover|Range Rover,Mini,Bentley,Rolls-Royce,Aston Martin,McLaren,Lotus,MG,Bugatti,Polestar,BYD,Rivian,Lucid,Smart,DS,Infiniti,Acura,Tata,Mahindra,Lada,Nio,Geely,Koenigsegg,Pagani,Morgan,TVR,Reliant,Rover,Austin,Triumph,Hummer"},
+ {cat:"Food & Drink",q:"Name a pizza topping",open:true,a:"Pepperoni,Ham,Mushroom,Onion,Pepper|Peppers,Olive|Olives,Pineapple,Sweetcorn|Corn,Jalapeno,Chicken,Beef|Minced Beef,Sausage,Bacon,Anchovy|Anchovies,Tuna,Prawn|Prawns|Shrimp,Spinach,Tomato,Garlic,Basil,Mozzarella,Cheddar,Goat's Cheese,Feta,Parmesan,Ricotta,Gorgonzola,Chorizo,Salami,Prosciutto|Parma Ham,Nduja,Artichoke,Rocket|Arugula,Egg,Capers,Chilli|Chillies,Aubergine|Eggplant,Courgette|Zucchini,Sun-dried Tomato,Meatballs,Pulled Pork,Kebab Meat,BBQ Sauce,Truffle,Broccoli,Red Onion,Oregano,Halloumi"},
+ {cat:"Games",q:"Name a board game",open:true,a:"Monopoly,Scrabble,Chess,Draughts|Checkers,Cluedo|Clue,Risk,Trivial Pursuit,Snakes and Ladders,Ludo,Backgammon,Connect Four|Connect 4,Guess Who,Operation,Mouse Trap,Battleship|Battleships,Game of Life|The Game of Life|Life,Catan|Settlers of Catan,Ticket to Ride,Carcassonne,Pandemic,Go,Othello|Reversi,Mahjong,Pictionary,Articulate,Boggle,Kerplunk,Hungry Hippos,Buckaroo,Jenga*,Twister*,Stratego,Mastermind,Sorry,Frustration,Dominoes*,Codenames,Azul,Wingspan,Dixit,Splendor,Scattergories,Taboo,Balderdash,Cranium,Monopoly Deal*,Exploding Kittens*,Uno*,Diplomacy,Terraforming Mars,Gloomhaven,Hotel"},
+
+ // ---- Countries ----
+ {cat:"Countries",key:"countries",q:"Name any country in the world",a:"Afghanistan,Albania,Algeria,Andorra,Angola,Antigua and Barbuda,Argentina,Armenia,Australia,Austria,Azerbaijan,Bahamas|The Bahamas,Bahrain,Bangladesh,Barbados,Belarus,Belgium,Belize,Benin,Bhutan,Bolivia,Bosnia and Herzegovina|Bosnia,Botswana,Brazil,Brunei,Bulgaria,Burkina Faso,Burundi,Cambodia,Cameroon,Canada,Cape Verde|Cabo Verde,Central African Republic|CAR,Chad,Chile,China,Colombia,Comoros,Congo|Republic of the Congo,DR Congo|Democratic Republic of the Congo|DRC,Costa Rica,Croatia,Cuba,Cyprus,Czech Republic|Czechia,Denmark,Djibouti,Dominica,Dominican Republic,East Timor|Timor-Leste,Ecuador,Egypt,El Salvador,Equatorial Guinea,Eritrea,Estonia,Eswatini|Swaziland,Ethiopia,Fiji,Finland,France,Gabon,Gambia|The Gambia,Georgia,Germany,Ghana,Greece,Grenada,Guatemala,Guinea,Guinea-Bissau,Guyana,Haiti,Honduras,Hungary,Iceland,India,Indonesia,Iran,Iraq,Ireland,Israel,Italy,Ivory Coast|Cote d'Ivoire,Jamaica,Japan,Jordan,Kazakhstan,Kenya,Kiribati,Kuwait,Kyrgyzstan,Laos,Latvia,Lebanon,Lesotho,Liberia,Libya,Liechtenstein,Lithuania,Luxembourg,Madagascar,Malawi,Malaysia,Maldives,Mali,Malta,Marshall Islands,Mauritania,Mauritius,Mexico,Micronesia,Moldova,Monaco,Mongolia,Montenegro,Morocco,Mozambique,Myanmar|Burma,Namibia,Nauru,Nepal,Netherlands|Holland,New Zealand,Nicaragua,Niger,Nigeria,North Korea,North Macedonia|Macedonia,Norway,Oman,Pakistan,Palau,Panama,Papua New Guinea,Paraguay,Peru,Philippines,Poland,Portugal,Qatar,Romania,Russia,Rwanda,Saint Kitts and Nevis|St Kitts and Nevis,Saint Lucia|St Lucia,Saint Vincent and the Grenadines|St Vincent,Samoa,San Marino,Sao Tome and Principe,Saudi Arabia,Senegal,Serbia,Seychelles,Sierra Leone,Singapore,Slovakia,Slovenia,Solomon Islands,Somalia,South Africa,South Korea,South Sudan,Spain,Sri Lanka,Sudan,Suriname,Sweden,Switzerland,Syria,Tajikistan,Tanzania,Thailand,Togo,Tonga,Trinidad and Tobago,Tunisia,Turkey|Turkiye,Turkmenistan,Tuvalu,Uganda,Ukraine,United Arab Emirates|UAE,United Kingdom|UK|Britain|Great Britain,United States|USA|America|US,Uruguay,Uzbekistan,Vanuatu,Vatican City|Holy See,Venezuela,Vietnam,Yemen,Zambia,Zimbabwe,Taiwan*,Palestine*,Kosovo*"},
+ {cat:"Countries",q:"Name a country in Asia",a:"Afghanistan,Bahrain,Bangladesh,Bhutan,Brunei,Cambodia,China,East Timor|Timor-Leste,India,Indonesia,Iran,Iraq,Israel,Japan,Jordan,Kazakhstan,Kuwait,Kyrgyzstan,Laos,Lebanon,Malaysia,Maldives,Mongolia,Myanmar|Burma,Nepal,North Korea,Oman,Pakistan,Philippines,Qatar,Saudi Arabia,Singapore,South Korea,Sri Lanka,Syria,Tajikistan,Thailand,Turkmenistan,United Arab Emirates|UAE,Uzbekistan,Vietnam,Yemen,Armenia*,Azerbaijan*,Georgia*,Cyprus*,Russia*,Turkey*,Taiwan*,Palestine*,Egypt*"},
+ {cat:"Countries",q:"Name a country in North or Central America (incl. Caribbean)",a:"Antigua and Barbuda,Bahamas,Barbados,Belize,Canada,Costa Rica,Cuba,Dominica,Dominican Republic,El Salvador,Grenada,Guatemala,Haiti,Honduras,Jamaica,Mexico,Nicaragua,Panama,Saint Kitts and Nevis|St Kitts,Saint Lucia|St Lucia,Saint Vincent and the Grenadines|St Vincent,Trinidad and Tobago,United States|USA|America,Greenland*,Puerto Rico*"},
+ {cat:"Countries",q:"Name a country in Oceania",a:"Australia,Fiji,Kiribati,Marshall Islands,Micronesia,Nauru,New Zealand,Palau,Papua New Guinea,Samoa,Solomon Islands,Tonga,Tuvalu,Vanuatu"},
+ {cat:"Countries",q:"Name a landlocked country",a:"Afghanistan,Andorra,Armenia,Austria,Azerbaijan*,Belarus,Bhutan,Bolivia,Botswana,Burkina Faso,Burundi,Central African Republic,Chad,Czech Republic|Czechia,Eswatini|Swaziland,Ethiopia,Hungary,Kazakhstan*,Kosovo*,Kyrgyzstan,Laos,Lesotho,Liechtenstein,Luxembourg,Malawi,Mali,Moldova,Mongolia,Nepal,Niger,North Macedonia|Macedonia,Paraguay,Rwanda,San Marino,Serbia,Slovakia,South Sudan,Switzerland,Tajikistan,Turkmenistan*,Uganda,Uzbekistan,Vatican City,Zambia,Zimbabwe"},
+ {cat:"Countries",q:"Name an African country with green on its flag",a:"Algeria,Benin,Burkina Faso,Burundi,Cameroon,Central African Republic,Comoros,Congo|Republic of the Congo,Djibouti,Equatorial Guinea,Eritrea,Ethiopia,Gabon,Gambia,Ghana,Guinea,Guinea-Bissau,Ivory Coast|Cote d'Ivoire,Kenya,Lesotho,Libya,Madagascar,Malawi,Mali,Mauritania,Mauritius,Morocco,Mozambique,Namibia,Niger,Nigeria,Rwanda,Sao Tome and Principe,Senegal,Seychelles,Sierra Leone,South Africa,South Sudan,Sudan,Tanzania,Togo,Zambia,Zimbabwe"},
+ {cat:"Countries",q:"Name a country whose flag is only red and white",a:"Austria,Bahrain,Canada,Denmark,Georgia,Indonesia,Japan,Latvia,Monaco,Peru,Poland,Singapore,Switzerland,Tonga,Tunisia,Turkey,Qatar*,Malta*,England*"},
+ {cat:"Countries",q:"Name a country with the Union Jack on its flag",a:"United Kingdom|UK|Britain,Australia,New Zealand,Fiji,Tuvalu"},
+ {cat:"Countries",q:"Name a country with a Nordic cross flag",a:"Denmark,Finland,Iceland,Norway,Sweden,Faroe Islands*,Aland*"},
+ {cat:"Countries",q:"Name a country that uses the euro",a:"Austria,Belgium,Bulgaria,Croatia,Cyprus,Estonia,Finland,France,Germany,Greece,Ireland,Italy,Latvia,Lithuania,Luxembourg,Malta,Netherlands|Holland,Portugal,Slovakia,Slovenia,Spain,Andorra,Monaco,San Marino,Vatican City,Montenegro*,Kosovo*"},
+ {cat:"Countries",q:"Name a member of the European Union",a:"Austria,Belgium,Bulgaria,Croatia,Cyprus,Czech Republic|Czechia,Denmark,Estonia,Finland,France,Germany,Greece,Hungary,Ireland,Italy,Latvia,Lithuania,Luxembourg,Malta,Netherlands|Holland,Poland,Portugal,Romania,Slovakia,Slovenia,Spain,Sweden"},
+ {cat:"Countries",q:"Name a G20 member",a:"Argentina,Australia,Brazil,Canada,China,France,Germany,India,Indonesia,Italy,Japan,Mexico,Russia,Saudi Arabia,South Africa,South Korea,Turkey,United Kingdom|UK,United States|USA,European Union*|EU,African Union*"},
+ {cat:"Countries",q:"Name a country with over 100 million people",a:"India,China,United States|USA,Indonesia,Pakistan,Nigeria,Brazil,Bangladesh,Russia,Ethiopia,Mexico,Japan,Egypt,Philippines,DR Congo|DRC|Democratic Republic of the Congo,Vietnam"},
+ {cat:"Countries",q:"Name a country that has hosted the men's football World Cup",a:"Uruguay,Italy,France,Brazil,Switzerland,Sweden,Chile,England,Mexico,Germany|West Germany,Argentina,Spain,United States|USA,South Korea,Japan,South Africa,Russia,Qatar,Canada"},
+ {cat:"Countries",q:"Name a country that won the men's World Cup before 2026",a:"Brazil,Germany|West Germany,Italy,Argentina,France,Uruguay,England,Spain"},
+
+ // ---- US States ----
+ {cat:"US States",q:"Name one of the original 13 colonies / states",a:"Delaware,Pennsylvania,New Jersey,Georgia,Connecticut,Massachusetts,Maryland,South Carolina,New Hampshire,Virginia,New York,North Carolina,Rhode Island"},
+ {cat:"US States",q:"Name a US state that borders Canada",a:"Alaska,Washington,Idaho,Montana,North Dakota,Minnesota,Michigan,New York,Vermont,New Hampshire,Maine,Ohio*,Pennsylvania*"},
+ {cat:"US States",q:"Name a US state that borders Mexico",a:"California,Arizona,New Mexico,Texas"},
+ {cat:"US States",q:"Name a US state with a Great Lakes shoreline",a:"Minnesota,Wisconsin,Illinois,Indiana,Michigan,Ohio,Pennsylvania,New York"},
+ {cat:"US States",q:"Name a US state with a Pacific coastline",a:"California,Oregon,Washington,Alaska,Hawaii"},
+ {cat:"US States",q:"Name a US state on the Gulf of Mexico",a:"Texas,Louisiana,Mississippi,Alabama,Florida"},
+
+ // ---- Capitals & Cities ----
+ {cat:"Capitals & Cities",key:"capitals",q:"Name any national capital city",a:"Kabul,Tirana,Algiers,Andorra la Vella,Luanda,St. John's|Saint John's,Buenos Aires,Yerevan,Canberra,Vienna,Baku,Nassau,Manama,Dhaka,Bridgetown,Minsk,Brussels,Belmopan,Porto-Novo,Thimphu,Sucre,La Paz*,Sarajevo,Gaborone,Brasilia,Bandar Seri Begawan,Sofia,Ouagadougou,Gitega,Phnom Penh,Yaounde,Ottawa,Praia,Bangui,N'Djamena,Santiago,Beijing|Peking,Bogota,Moroni,Brazzaville,Kinshasa,San Jose,Zagreb,Havana,Nicosia,Prague,Copenhagen,Djibouti,Roseau,Santo Domingo,Dili,Quito,Cairo,San Salvador,Malabo,Asmara,Tallinn,Mbabane,Lobamba*,Addis Ababa,Suva,Helsinki,Paris,Libreville,Banjul,Tbilisi,Berlin,Accra,Athens,St. George's|Saint George's,Guatemala City,Conakry,Bissau,Georgetown,Port-au-Prince,Tegucigalpa,Budapest,Reykjavik,New Delhi|Delhi,Jakarta,Tehran,Baghdad,Dublin,Jerusalem*,Rome,Yamoussoukro,Abidjan*,Kingston,Tokyo,Amman,Astana,Nairobi,Tarawa|South Tarawa,Kuwait City,Bishkek,Vientiane,Riga,Beirut,Maseru,Monrovia,Tripoli,Vaduz,Vilnius,Luxembourg,Antananarivo,Lilongwe,Kuala Lumpur,Male,Bamako,Valletta,Majuro,Nouakchott,Port Louis,Mexico City,Palikir,Chisinau,Monaco,Ulaanbaatar|Ulan Bator,Podgorica,Rabat,Maputo,Naypyidaw|Nay Pyi Taw,Windhoek,Yaren*,Kathmandu,Amsterdam,Wellington,Managua,Niamey,Abuja,Pyongyang,Skopje,Oslo,Muscat,Islamabad,Ngerulmud,Panama City,Port Moresby,Asuncion,Lima,Manila,Warsaw,Lisbon,Doha,Bucharest,Moscow,Kigali,Basseterre,Castries,Kingstown,Apia,San Marino,Sao Tome,Riyadh,Dakar,Belgrade,Victoria,Freetown,Singapore,Bratislava,Ljubljana,Honiara,Mogadishu,Pretoria,Cape Town,Bloemfontein,Seoul,Juba,Madrid,Colombo,Sri Jayawardenepura Kotte|Kotte,Khartoum,Paramaribo,Stockholm,Bern|Berne,Damascus,Dushanbe,Dodoma,Bangkok,Lome,Nuku'alofa,Port of Spain,Tunis,Ankara,Ashgabat,Funafuti,Kampala,Kyiv|Kiev,Abu Dhabi,London,Washington D.C.|Washington DC|Washington,Montevideo,Tashkent,Port Vila,Vatican City,Caracas,Hanoi,Sanaa,Lusaka,Harare,Taipei*"},
+ {cat:"Capitals & Cities",q:"Name a city that has hosted the Summer Olympics",a:"Athens,Paris,St. Louis|Saint Louis,London,Stockholm,Antwerp,Amsterdam,Los Angeles|LA,Berlin,Helsinki,Melbourne,Rome,Tokyo,Mexico City,Munich,Montreal,Moscow,Seoul,Barcelona,Atlanta,Sydney,Beijing,Rio de Janeiro|Rio"},
+ {cat:"Capitals & Cities",q:"Name a London borough",a:"Barking and Dagenham,Barnet,Bexley,Brent,Bromley,Camden,Croydon,Ealing,Enfield,Greenwich,Hackney,Hammersmith and Fulham,Haringey,Harrow,Havering,Hillingdon,Hounslow,Islington,Kensington and Chelsea,Kingston upon Thames|Kingston,Lambeth,Lewisham,Merton,Newham,Redbridge,Richmond upon Thames|Richmond,Southwark,Sutton,Tower Hamlets,Waltham Forest,Wandsworth,Westminster|City of Westminster,City of London*"},
+ {cat:"Capitals & Cities",q:"Name one of the Seven Wonders of the Ancient World",a:"Great Pyramid of Giza|Pyramids|Great Pyramid,Hanging Gardens of Babylon,Statue of Zeus at Olympia|Statue of Zeus,Temple of Artemis at Ephesus|Temple of Artemis,Mausoleum at Halicarnassus,Colossus of Rhodes,Lighthouse of Alexandria|Pharos of Alexandria"},
+ {cat:"Capitals & Cities",q:"Name one of the New Seven Wonders of the World",a:"Great Wall of China,Petra,Christ the Redeemer,Machu Picchu,Chichen Itza,Colosseum,Taj Mahal"},
+ {cat:"Capitals & Cities",q:"Name a continent",a:"Africa,Antarctica,Asia,Europe,North America,South America,Oceania|Australia"},
+ {cat:"Capitals & Cities",q:"Name an ocean",a:"Pacific,Atlantic,Indian,Southern|Antarctic,Arctic"},
+
+ // ---- Elements ----
+ {cat:"Elements",q:"Name an element whose symbol is a single letter",a:"Hydrogen,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Phosphorus,Sulfur|Sulphur,Potassium,Vanadium,Yttrium,Iodine,Tungsten,Uranium"},
+ {cat:"Elements",q:"Name an element whose symbol doesn't start with the same letter as its name",a:"Sodium,Potassium,Iron,Copper,Silver,Tin,Antimony,Tungsten,Gold,Mercury,Lead"},
+ {cat:"Elements",q:"Name an element named after a place",a:"Americium,Berkelium,Californium,Darmstadtium,Dubnium,Europium,Francium,Gallium,Germanium,Hafnium,Hassium,Holmium,Livermorium,Lutetium,Magnesium,Moscovium,Nihonium,Polonium,Rhenium,Ruthenium,Scandium,Strontium,Tennessine,Thulium,Ytterbium,Yttrium,Erbium,Terbium,Copper*,Manganese*"},
+ {cat:"Elements",q:"Name an element named after a person",a:"Curium,Einsteinium,Fermium,Mendelevium,Nobelium,Lawrencium,Rutherfordium,Seaborgium,Bohrium,Meitnerium,Roentgenium,Copernicium,Flerovium,Oganesson,Gadolinium,Samarium*"},
+ {cat:"Elements",q:"Name an element that's a gas at room temperature",a:"Hydrogen,Helium,Nitrogen,Oxygen,Fluorine,Neon,Chlorine,Argon,Krypton,Xenon,Radon"},
+ {cat:"Elements",q:"Name a noble gas",a:"Helium,Neon,Argon,Krypton,Xenon,Radon,Oganesson*"},
+
+ // ---- Science & Space ----
+ {cat:"Science & Space",q:"Name a moon in our solar system",open:true,a:"The Moon|Moon|Luna,Phobos,Deimos,Io,Europa,Ganymede,Callisto,Amalthea,Himalia,Metis,Thebe,Adrastea,Titan,Enceladus,Mimas,Rhea,Iapetus,Dione,Tethys,Hyperion,Phoebe,Janus,Epimetheus,Pandora,Prometheus,Miranda,Ariel,Umbriel,Titania,Oberon,Puck,Triton,Nereid,Proteus,Charon*,Nix*,Hydra*"},
+ {cat:"Science & Space",q:"Name an SI base unit",a:"Metre|Meter,Kilogram,Second,Ampere|Amp,Kelvin,Mole,Candela"},
+ {cat:"Science & Space",q:"Name an SI prefix (like kilo or milli)",a:"Quecto,Ronto,Yocto,Zepto,Atto,Femto,Pico,Nano,Micro,Milli,Centi,Deci,Deca|Deka,Hecto,Kilo,Mega,Giga,Tera,Peta,Exa,Zetta,Yotta,Ronna,Quetta"},
+ {cat:"Science & Space",q:"Name a bone in the human body",open:true,a:"Skull|Cranium,Mandible|Jaw,Maxilla,Clavicle|Collarbone,Scapula|Shoulder Blade,Sternum|Breastbone,Rib,Humerus,Radius,Ulna,Carpal,Metacarpal,Phalanges|Phalanx,Vertebra|Vertebrae,Pelvis|Hip Bone,Sacrum,Coccyx|Tailbone,Femur|Thigh Bone,Patella|Kneecap,Tibia|Shin Bone,Fibula,Tarsal,Metatarsal,Talus,Calcaneus|Heel Bone,Hyoid,Stapes|Stirrup,Incus|Anvil,Malleus|Hammer,Frontal,Parietal,Temporal,Occipital,Sphenoid,Ethmoid,Zygomatic|Cheekbone,Nasal,Lacrimal,Vomer,Atlas,Axis,Ilium,Ischium,Pubis,Scaphoid,Lunate,Trapezium,Hamate,Navicular,Cuboid,Cuneiform"},
+ {cat:"Science & Space",q:"Name an organ of the human body",open:true,a:"Heart,Brain,Lungs|Lung,Liver,Kidneys|Kidney,Stomach,Skin,Pancreas,Spleen,Gallbladder,Bladder,Small Intestine,Large Intestine|Colon,Appendix,Oesophagus|Esophagus,Thyroid,Adrenal Glands,Tongue,Eyes|Eye,Ears|Ear,Uterus|Womb,Ovaries,Testes,Prostate,Thymus,Larynx,Trachea|Windpipe,Diaphragm*,Tonsils,Pituitary Gland,Spinal Cord,Rectum,Duodenum,Nose"},
+ {cat:"Science & Space",q:"Name a blood type",a:"A+|A positive,A-|A negative,B+|B positive,B-|B negative,AB+|AB positive,AB-|AB negative,O+|O positive,O-|O negative"},
+ {cat:"Science & Space",q:"Name a dinosaur",open:true,a:"Tyrannosaurus Rex|T-Rex|T Rex,Triceratops,Velociraptor|Raptor,Stegosaurus,Brachiosaurus,Diplodocus,Brontosaurus|Apatosaurus,Spinosaurus,Ankylosaurus,Allosaurus,Iguanodon,Parasaurolophus,Pachycephalosaurus,Archaeopteryx*,Pterodactyl*|Pteranodon*,Gallimimus,Dilophosaurus,Carnotaurus,Giganotosaurus,Argentinosaurus,Compsognathus,Oviraptor,Protoceratops,Deinonychus,Therizinosaurus,Baryonyx,Megalosaurus,Maiasaura,Utahraptor,Microraptor,Edmontosaurus,Styracosaurus,Plateosaurus,Coelophysis,Mosasaurus*,Plesiosaurus*,Corythosaurus,Troodon,Albertosaurus,Indominus Rex*"},
+ {cat:"Science & Space",q:"Name a constellation",open:true,a:"Orion,Ursa Major|Great Bear|Big Dipper*|Plough*,Ursa Minor|Little Bear,Cassiopeia,Cygnus,Leo,Scorpius|Scorpio,Taurus,Gemini,Cancer,Virgo,Libra,Sagittarius,Capricornus|Capricorn,Aquarius,Pisces,Aries,Andromeda,Perseus,Pegasus,Draco,Lyra,Aquila,Centaurus,Crux|Southern Cross,Canis Major,Canis Minor,Hercules,Bootes,Ophiuchus,Hydra,Cepheus,Auriga,Corona Borealis,Delphinus,Lepus,Monoceros,Phoenix,Carina,Vela,Puppis,Eridanus,Columba,Lupus,Ara,Pavo,Tucana,Grus,Sculptor,Fornax,Cetus,Triangulum,Sagitta,Vulpecula,Lynx,Camelopardalis"},
+ {cat:"Science & Space",q:"Name a bird of prey",open:true,a:"Eagle,Golden Eagle,Bald Eagle,Harpy Eagle,White-tailed Eagle|Sea Eagle,Hawk,Red-tailed Hawk,Falcon,Peregrine Falcon|Peregrine,Kestrel,Hobby,Merlin,Gyrfalcon,Owl,Barn Owl,Tawny Owl,Snowy Owl,Eagle Owl,Buzzard,Red Kite|Kite,Osprey,Vulture,Condor,Harrier|Hen Harrier|Marsh Harrier,Sparrowhawk,Goshawk,Secretary Bird,Caracara,Kookaburra*"},
+
+ // ---- Maths ----
+ {cat:"Maths",q:"Name a prime number under 100",a:"2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97"},
+ {cat:"Maths",q:"Name a power of 2 (up to 65,536)",a:"1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536"},
+ {cat:"Maths",q:"Name a Fibonacci number under 1,000",a:"0,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987"},
+ {cat:"Maths",q:"Name a square number under 200",a:"1,4,9,16,25,36,49,64,81,100,121,144,169,196,0*"},
+ {cat:"Maths",q:"Name a 2D shape",open:true,a:"Triangle,Square,Rectangle,Circle,Oval|Ellipse,Pentagon,Hexagon,Heptagon|Septagon,Octagon,Nonagon,Decagon,Hendecagon|Undecagon,Dodecagon,Rhombus|Diamond,Parallelogram,Trapezium|Trapezoid,Kite,Star,Heart,Crescent,Semicircle,Quadrilateral,Icosagon,Arrow,Cross,Annulus|Ring,Sector,Scalene Triangle,Isosceles Triangle,Equilateral Triangle,Right-angled Triangle"},
+ {cat:"Maths",q:"Name a famous mathematician",open:true,a:"Pythagoras,Euclid,Archimedes,Isaac Newton|Newton,Gottfried Leibniz|Leibniz,Leonhard Euler|Euler,Carl Friedrich Gauss|Gauss,Bernhard Riemann|Riemann,Pierre de Fermat|Fermat,Blaise Pascal|Pascal,Rene Descartes|Descartes,Fibonacci,Alan Turing|Turing,Ada Lovelace|Lovelace,John von Neumann|von Neumann,Srinivasa Ramanujan|Ramanujan,Emmy Noether|Noether,Kurt Godel|Godel,David Hilbert|Hilbert,Georg Cantor|Cantor,Andrew Wiles|Wiles,Terence Tao|Tao,Hypatia,Al-Khwarizmi,Joseph Fourier|Fourier,Pierre-Simon Laplace|Laplace,Joseph-Louis Lagrange|Lagrange,Evariste Galois|Galois,John Nash|Nash,Paul Erdos|Erdos,Grigori Perelman|Perelman,Benoit Mandelbrot|Mandelbrot,George Boole|Boole,Charles Babbage|Babbage,Henri Poincare|Poincare,Sophie Germain,Maryam Mirzakhani,Katherine Johnson,Alonzo Church,Claude Shannon,Bertrand Russell,Euclid of Alexandria,Thales,Omar Khayyam,Brahmagupta,Aryabhata,John Napier|Napier,Johannes Kepler*"},
+
+ // ---- Dev: Languages ----
+ {cat:"Dev: Languages",q:"Name a programming language with a single-letter name",a:"C,R,D,J,K,V,B*,E*,F*"},
+ {cat:"Dev: Languages",q:"Name a language whose name ends in 'Script'",open:true,a:"JavaScript,TypeScript,CoffeeScript,ActionScript,AppleScript,PureScript,ReScript,LiveScript,VBScript,JScript,AssemblyScript,PostScript,ClojureScript,GDScript,ECMAScript,ElmScript*,HyperScript*,QtScript,Google Apps Script|Apps Script"},
+ {cat:"Dev: Languages",q:"Name a language that runs on the JVM",open:true,a:"Java,Kotlin,Scala,Groovy,Clojure,Jython,JRuby,Ceylon,Frege,Eta,Fantom,Xtend,BeanShell,Nashorn*,Rhino*,Gosu,Golo"},
+ {cat:"Dev: Languages",q:"Name a language that compiles to JavaScript",open:true,a:"TypeScript,CoffeeScript,Elm,ReScript,ReasonML|Reason,ClojureScript,Dart,PureScript,Haxe,Kotlin*,Scala.js*,LiveScript,GopherJS*,Fable,Gleam,Imba,Civet,Nim*,Opal*,Brython*"},
+ {cat:"Dev: Languages",q:"Name a programming language created before 1980",open:true,a:"Fortran,Lisp,COBOL,ALGOL,BASIC,APL,Simula,PL/I,Pascal,C,Smalltalk,Prolog,ML,Scheme,Logo,Forth,BCPL,B,AWK,Modula-2,SQL*,MUMPS,SNOBOL,JOSS,Plankalkul,FLOW-MATIC,RPG,Bourne shell*|sh*,sed*,Ratfor"},
+ {cat:"Dev: Languages",key:"pybuiltins",q:"Name a Python built-in function",a:"abs,aiter,all,anext,any,ascii,bin,bool,breakpoint,bytearray,bytes,callable,chr,classmethod,compile,complex,delattr,dict,dir,divmod,enumerate,eval,exec,filter,float,format,frozenset,getattr,globals,hasattr,hash,help,hex,id,input,int,isinstance,issubclass,iter,len,list,locals,map,max,memoryview,min,next,object,oct,open,ord,pow,print,property,range,repr,reversed,round,set,setattr,slice,sorted,staticmethod,str,sum,super,tuple,type,vars,zip,__import__"},
+ {cat:"Dev: Languages",q:"Name a Python keyword",a:"False,None,True,and,as,assert,async,await,break,class,continue,def,del,elif,else,except,finally,for,from,global,if,import,in,is,lambda,nonlocal,not,or,pass,raise,return,try,while,with,yield,match*,case*,type*"},
+ {cat:"Dev: Languages",q:"Name a Python standard library module",open:true,a:"os,sys,re,json,math,random,datetime,time,collections,itertools,functools,pathlib,subprocess,logging,argparse,typing,unittest,csv,sqlite3,threading,multiprocessing,asyncio,socket,http,urllib,hashlib,base64,pickle,copy,shutil,glob,tempfile,uuid,decimal,fractions,statistics,string,textwrap,enum,dataclasses,abc,contextlib,io,struct,heapq,bisect,queue,secrets,hmac,zipfile,tarfile,gzip,xml,email,smtplib,pprint,inspect,traceback,operator,weakref,signal,platform,getpass,calendar,timeit,venv,pdb,doctest,tkinter,turtle,configparser,shlex,ssl,ipaddress,array,zlib,tomllib,graphlib,difflib,locale,gettext,cmath,codecs,selectors,mmap,ctypes,unicodedata"},
+ {cat:"Dev: Languages",q:"Name a popular Python package (from PyPI)",open:true,a:"numpy,pandas,requests,flask,django,fastapi,scipy,matplotlib,seaborn,scikit-learn|sklearn,tensorflow,pytorch|torch,keras,pytest,black,ruff,mypy,pydantic,sqlalchemy,celery,boto3,beautifulsoup|bs4,scrapy,selenium,pillow|PIL,opencv,plotly,jupyter,streamlit,gunicorn,uvicorn,httpx,click,typer,rich,tqdm,polars,dask,pyspark,nltk,spacy,transformers,langchain,anthropic,openai,poetry,setuptools,alembic,redis,psycopg2,airflow,prefect,numba,sympy,networkx,xgboost,lightgbm,jinja2,pyyaml,arrow,pendulum,faker,hypothesis,tox,gradio,uv,pip*,flake8,pylint,isort,aiohttp,starlette,marshmallow,attrs,loguru"},
+ {cat:"Dev: Languages",q:"Name a JavaScript array method",a:"map,filter,reduce,reduceRight,forEach,find,findIndex,findLast,findLastIndex,some,every,includes,indexOf,lastIndexOf,push,pop,shift,unshift,slice,splice,concat,join,reverse,sort,flat,flatMap,fill,copyWithin,entries,keys,values,at,toSorted,toReversed,toSpliced,with,toString,toLocaleString,Array.from*,Array.of*,Array.isArray*"},
+ {cat:"Dev: Languages",q:"Name a JavaScript array method that mutates the array",a:"push,pop,shift,unshift,splice,sort,reverse,fill,copyWithin"},
+ {cat:"Dev: Languages",q:"Name a JavaScript reserved word",a:"break,case,catch,class,const,continue,debugger,default,delete,do,else,export,extends,false,finally,for,function,if,import,in,instanceof,new,null,return,super,switch,this,throw,true,try,typeof,var,void,while,with,yield,let,static,await,enum,implements,interface,package,private,protected,public,async*,of*,get*,set*,undefined*"},
+ {cat:"Dev: Languages",q:"Name a falsy value in JavaScript",a:"false,0,negative zero|minus zero,0n|BigInt zero,empty string|''|empty,null,undefined,NaN,document.all*"},
+ {cat:"Dev: Languages",q:"Name a React hook",a:"useState,useEffect,useContext,useReducer,useCallback,useMemo,useRef,useLayoutEffect,useImperativeHandle,useDebugValue,useId,useTransition,useDeferredValue,useSyncExternalStore,useInsertionEffect,useOptimistic,useActionState,use,useFormStatus"},
+ {cat:"Dev: Languages",q:"Name a SQL keyword",open:true,a:"SELECT,FROM,WHERE,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER,TABLE,INDEX,VIEW,JOIN,INNER JOIN,LEFT JOIN,RIGHT JOIN,FULL OUTER JOIN,CROSS JOIN,ON,GROUP BY,ORDER BY,HAVING,LIMIT,OFFSET,DISTINCT,UNION,UNION ALL,INTERSECT,EXCEPT,AS,AND,OR,NOT,IN,BETWEEN,LIKE,IS NULL,EXISTS,CASE,WHEN,THEN,ELSE,END,INTO,VALUES,SET,PRIMARY KEY,FOREIGN KEY,REFERENCES,DEFAULT,CHECK,UNIQUE,TRUNCATE,COMMIT,ROLLBACK,BEGIN,TRANSACTION,GRANT,REVOKE,WITH,ASC,DESC,COUNT,SUM,AVG,MIN,MAX,COALESCE,CAST,NULL,ALL,ANY,MERGE,RETURNING,OVER,PARTITION BY,WINDOW,FETCH,TOP"},
+ {cat:"Dev: Languages",q:"Name a file extension used for code or config",open:true,a:".js,.ts,.py,.java,.rb,.go,.rs,.cpp,.c,.h,.cs,.php,.html,.css,.json,.xml,.yaml|.yml,.md,.sql,.sh,.bat,.toml,.ini,.env,.lock,.swift,.kt,.scala,.lua,.r,.jsx,.tsx,.vue,.svelte,.scss,.sass,.less,.ipynb,.dart,.ex,.exs,.erl,.hs,.ml,.clj,.pl,.ps1,.wasm,.zig,.jl,.mjs,.cjs,.gradle,.tf,.proto,.graphql,.dockerfile|Dockerfile,.cfg,.conf,.m,.vb,.fs,.groovy,.asm,.rkt,.nim,.cr,.sol,.astro,.mdx,.csv*,.txt*"},
+
+ // ---- Dev: Web ----
+ {cat:"Dev: Web",key:"http",q:"Name an HTTP status code",a:"100|Continue,101|Switching Protocols,102|Processing,103|Early Hints,200|OK,201|Created,202|Accepted,203|Non-Authoritative Information,204|No Content,205|Reset Content,206|Partial Content,207|Multi-Status,208|Already Reported,226|IM Used,300|Multiple Choices,301|Moved Permanently,302|Found,303|See Other,304|Not Modified,305*|Use Proxy,307|Temporary Redirect,308|Permanent Redirect,400|Bad Request,401|Unauthorized,402|Payment Required,403|Forbidden,404|Not Found,405|Method Not Allowed,406|Not Acceptable,407|Proxy Authentication Required,408|Request Timeout,409|Conflict,410|Gone,411|Length Required,412|Precondition Failed,413|Content Too Large|Payload Too Large,414|URI Too Long,415|Unsupported Media Type,416|Range Not Satisfiable,417|Expectation Failed,418|I'm a teapot,421|Misdirected Request,422|Unprocessable Content|Unprocessable Entity,423|Locked,424|Failed Dependency,425|Too Early,426|Upgrade Required,428|Precondition Required,429|Too Many Requests,431|Request Header Fields Too Large,451|Unavailable For Legal Reasons,500|Internal Server Error,501|Not Implemented,502|Bad Gateway,503|Service Unavailable,504|Gateway Timeout,505|HTTP Version Not Supported,506|Variant Also Negotiates,507|Insufficient Storage,508|Loop Detected,510|Not Extended,511|Network Authentication Required"},
+ {cat:"Dev: Web",q:"Name an HTTP method",a:"GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS,CONNECT,TRACE"},
+ {cat:"Dev: Web",q:"Name an HTTP header",open:true,a:"Content-Type,Content-Length,Authorization,Accept,Accept-Encoding,Accept-Language,User-Agent,Host,Cookie,Set-Cookie,Cache-Control,ETag,If-None-Match,If-Modified-Since,Last-Modified,Expires,Location,Referer,Origin,Access-Control-Allow-Origin,Access-Control-Allow-Methods,Access-Control-Allow-Headers,Content-Encoding,Content-Disposition,Connection,Keep-Alive,Upgrade,Strict-Transport-Security,Content-Security-Policy,X-Frame-Options,X-Content-Type-Options,X-Forwarded-For,X-Request-ID,Retry-After,Range,Vary,Date,Server,WWW-Authenticate,Transfer-Encoding,Pragma,Allow,Age,DNT,Forwarded,Link,Referrer-Policy,Permissions-Policy"},
+ {cat:"Dev: Web",key:"html",q:"Name an HTML element / tag",a:"a,abbr,address,area,article,aside,audio,b,base,bdi,bdo,blockquote,body,br,button,canvas,caption,cite,code,col,colgroup,data,datalist,dd,del,details,dfn,dialog,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,head,header,hgroup,hr,html,i,iframe,img,input,ins,kbd,label,legend,li,link,main,map,mark,menu,meta,meter,nav,noscript,object,ol,optgroup,option,output,p,picture,pre,progress,q,rp,rt,ruby,s,samp,script,search,section,select,slot,small,source,span,strong,style,sub,summary,sup,table,tbody,td,template,textarea,tfoot,th,thead,time,title,tr,track,u,ul,var,video,wbr,marquee*,blink*,center*,font*"},
+ {cat:"Dev: Web",q:"Name a CSS property",open:true,a:"color,background,background-color,background-image,margin,padding,border,border-radius,display,position,top,left,right,bottom,width,height,max-width,min-width,max-height,min-height,font-size,font-family,font-weight,font-style,line-height,text-align,text-decoration,text-transform,text-shadow,z-index,overflow,opacity,flex,flex-direction,flex-wrap,flex-grow,flex-shrink,flex-basis,justify-content,align-items,align-self,gap,grid,grid-template-columns,grid-template-rows,grid-area,transform,transition,animation,box-shadow,cursor,visibility,float,clear,content,box-sizing,outline,letter-spacing,white-space,filter,object-fit,aspect-ratio,inset,list-style,vertical-align,word-break,user-select,pointer-events,backdrop-filter,clip-path,will-change,columns,order,resize,scroll-behavior,container-type,accent-color,place-items,overflow-wrap,text-overflow,mix-blend-mode"},
+ {cat:"Dev: Web",q:"Name a JavaScript framework or library",open:true,a:"React,Angular,Vue,Svelte,SolidJS|Solid,Preact,Ember,Backbone,jQuery,Next.js|Next,Nuxt,Remix,Gatsby,Astro,SvelteKit,Qwik,Alpine.js|Alpine,Lit,Express,NestJS,Fastify,Koa,Hapi,Hono,Meteor,Redux,MobX,Zustand,RxJS,Lodash,Underscore,D3,Three.js,Chart.js,Electron,React Native,Ionic,Expo,Jest,Mocha,Vitest,Cypress,Playwright,Webpack,Vite,Rollup,Parcel,esbuild,Babel,Tailwind,Bootstrap,Mithril,Knockout,Aurelia,Moment.js|Moment,Axios,Socket.io,Storybook,Mongoose,Prisma,TanStack Query|React Query,Drizzle,tRPC,htmx,Stimulus,Dojo,Prototype*,MooTools,Polymer,Inferno,Marko"},
+ {cat:"Dev: Web",q:"Name a web browser (past or present)",open:true,a:"Chrome,Firefox,Safari,Edge,Opera,Brave,Vivaldi,Internet Explorer|IE,Arc,Tor Browser|Tor,Chromium,Samsung Internet,UC Browser,DuckDuckGo,Netscape|Netscape Navigator,Mosaic,Maxthon,Yandex,Waterfox,Pale Moon,SeaMonkey,Konqueror,Lynx,Midori,Epiphany|GNOME Web,Dia,Zen,Orion,Ladybird,Opera GX,Mullvad Browser,LibreWolf,Puffin,Dolphin,Camino,Flock,Opera Mini,Silk,Comet,Atlas"},
+ {cat:"Dev: Web",q:"Name a well-known port number",a:"20|FTP data,21|FTP,22|SSH,23|Telnet,25|SMTP,53|DNS,67|DHCP,68,69|TFTP,80|HTTP,110|POP3,123|NTP,143|IMAP,161|SNMP,389|LDAP,443|HTTPS,445|SMB,465|SMTPS,514|Syslog,587,636|LDAPS,993|IMAPS,995|POP3S,1433|SQL Server,1521|Oracle,2049|NFS,2181|ZooKeeper,3000*,3306|MySQL,3389|RDP,5000*,5432|PostgreSQL|Postgres,5672|RabbitMQ|AMQP,6379|Redis,6443|Kubernetes API,8000*,8080|HTTP alt,8443,9092|Kafka,9200|Elasticsearch,11211|Memcached,27017|MongoDB"},
+
+ // ---- Dev: Tools & Infra ----
+ {cat:"Dev: Tools & Infra",q:"Name a git command (git ___)",a:"add,commit,push,pull,fetch,merge,rebase,clone,init,status,log,diff,branch,checkout,switch,restore,reset,revert,stash,tag,cherry-pick,blame,bisect,remote,show,reflog,clean,rm,mv,config,grep,worktree,submodule,archive,gc,describe,shortlog,am,apply,format-patch,notes,sparse-checkout,help,fsck,prune,mergetool,difftool,bundle,maintenance,range-diff,ls-files,ls-remote,rev-parse,cat-file,whatchanged,instaweb,request-pull,send-email,filter-branch,replace,rerere"},
+ {cat:"Dev: Tools & Infra",key:"linux",q:"Name a Linux / Unix shell command",open:true,a:"ls,cd,pwd,mkdir,rmdir,rm,cp,mv,touch,cat,less,more,head,tail,grep,find,sed,awk,sort,uniq,wc,cut,tr,chmod,chown,chgrp,ps,top,htop,kill,killall,man,echo,printf,curl,wget,ssh,scp,rsync,tar,gzip,gunzip,zip,unzip,df,du,free,uname,whoami,which,whereis,alias,history,sudo,su,ln,diff,tee,xargs,ping,netstat,ss,ifconfig,ip,dig,nslookup,crontab,systemctl,journalctl,mount,umount,date,cal,sleep,watch,nano,vim,vi,emacs,clear,exit,export,env,source,file,stat,tree,jq,nohup,bg,fg,jobs,passwd,useradd,lsof,strace,make,dd,bc,id,nl,od,pr,sh,at,ed,nc,w,who,uptime,locate,basename,dirname,seq,yes,shuf,tac,rev,paste,join,split,column,fold,traceroute,host,whois,screen,tmux,chroot,umask"},
+ {cat:"Dev: Tools & Infra",q:"Name a docker command (docker ___)",a:"run,build,pull,push,ps,images,exec,logs,stop,start,restart,rm,rmi,compose,network,volume,inspect,tag,login,logout,kill,pause,unpause,cp,attach,commit,create,diff,events,export,import,history,info,load,save,port,rename,search,stats,top,update,version,wait,system,buildx,context,init,scout,swarm,service,stack,secret,config,node,container,image,plugin,trust,manifest"},
+ {cat:"Dev: Tools & Infra",q:"Name a Kubernetes resource kind",a:"Pod,Deployment,Service,ReplicaSet,StatefulSet,DaemonSet,Job,CronJob,ConfigMap,Secret,Namespace,Ingress,PersistentVolume|PV,PersistentVolumeClaim|PVC,StorageClass,ServiceAccount,Role,ClusterRole,RoleBinding,ClusterRoleBinding,NetworkPolicy,HorizontalPodAutoscaler|HPA,Node,Endpoints|Endpoint,EndpointSlice,LimitRange,ResourceQuota,PodDisruptionBudget|PDB,CustomResourceDefinition|CRD,ReplicationController,Event,Lease,PriorityClass,IngressClass,VolumeAttachment,Gateway*,HTTPRoute*,VerticalPodAutoscaler*"},
+ {cat:"Dev: Tools & Infra",key:"aws",q:"Name an AWS service",open:true,a:"EC2,S3,Lambda,RDS,DynamoDB,CloudFront,Route 53,IAM,VPC,ECS,EKS,Fargate,SQS,SNS,Kinesis,Redshift,Athena,Glue,EMR,CloudWatch,CloudTrail,CloudFormation,Elastic Beanstalk,API Gateway,Cognito,Secrets Manager,KMS,Step Functions,EventBridge,Aurora,ElastiCache,ECR,EBS,EFS,Glacier,SageMaker,Bedrock,Amplify,AppSync,Lightsail,Batch,CodeBuild,CodePipeline,CodeDeploy,CodeCommit,Systems Manager,Config,GuardDuty,Inspector,WAF,Shield,Direct Connect,Outposts,Snowball,Transfer Family,Neptune,DocumentDB,Timestream,QuickSight,Lake Formation,MSK,Amazon MQ,Organizations,Control Tower,Trusted Advisor,Comprehend,Rekognition,Polly,Transcribe,Translate,Lex,Textract,Connect,SES,Pinpoint,X-Ray,OpenSearch,Elastic Load Balancing|ELB|ALB,Auto Scaling,Global Accelerator,Certificate Manager|ACM,Cloud9,CDK,App Runner,Security Hub,Macie,Detective,Kendra,Q|Amazon Q"},
+ {cat:"Dev: Tools & Infra",q:"Name a cloud or hosting provider",open:true,a:"AWS|Amazon Web Services,Azure|Microsoft Azure,Google Cloud|GCP,IBM Cloud,Oracle Cloud,Alibaba Cloud,DigitalOcean,Linode|Akamai,Vultr,Heroku,Vercel,Netlify,Cloudflare,Render,Fly.io,Railway,Hetzner,OVH|OVHcloud,Firebase,Supabase,Rackspace,Scaleway,GitHub Pages,Backblaze,Tencent Cloud,Huawei Cloud,GoDaddy,Hostinger,SiteGround,Bluehost,Wix*,Squarespace*,Replit,Glitch,PythonAnywhere,Deno Deploy,Koyeb,Northflank"},
+ {cat:"Dev: Tools & Infra",q:"Name a database",open:true,a:"MySQL,PostgreSQL|Postgres,SQLite,Oracle,SQL Server|MSSQL,MariaDB,MongoDB,Redis,Cassandra,DynamoDB,CouchDB,Couchbase,Neo4j,Elasticsearch,Firestore|Firebase,Snowflake,BigQuery,Redshift,ClickHouse,InfluxDB,TimescaleDB,CockroachDB,DB2,Memcached,HBase,Supabase*,PlanetScale*,Teradata,Microsoft Access|Access,FoxPro,Realm,RocksDB,LevelDB,Spanner,Cosmos DB,Druid,ArangoDB,Riak,Neon*,DuckDB,Pinecone,Weaviate,Milvus,SurrealDB,Fauna,ScyllaDB,Vitess,etcd,Valkey,Aurora,TiDB,Qdrant,Chroma"},
+ {cat:"Dev: Tools & Infra",q:"Name a code editor or IDE",open:true,a:"VS Code|Visual Studio Code,Visual Studio,IntelliJ IDEA|IntelliJ,PyCharm,WebStorm,Eclipse,NetBeans,Xcode,Android Studio,Vim,Neovim,Emacs,Sublime Text,Atom,Notepad++,Nano,Cursor,Zed,Rider,CLion,GoLand,PhpStorm,RubyMine,DataGrip,Fleet,Brackets,Komodo,Code::Blocks,Dreamweaver,BBEdit,TextMate,Geany,Kate,gedit,Jupyter,RStudio,Spyder,Replit,Windsurf,Helix,Thonny,BlueJ,Notepad,ed,Pico,Kiro,Lapce,Micro"},
+ {cat:"Dev: Tools & Infra",q:"Name a Linux distribution",open:true,a:"Ubuntu,Debian,Fedora,Arch,Manjaro,Linux Mint|Mint,CentOS,Red Hat|RHEL,Rocky Linux|Rocky,AlmaLinux,openSUSE,SUSE,Gentoo,Slackware,Kali,Pop!_OS|Pop OS,elementary OS,Zorin,Alpine,NixOS,Void,Raspberry Pi OS|Raspbian,Tails,Qubes*,Mageia,Puppy Linux,MX Linux,EndeavourOS,Garuda,Deepin,Solus,Clear Linux,Amazon Linux,Oracle Linux,Kubuntu,Xubuntu,Lubuntu,Parrot OS,ChromeOS*,SteamOS,Bazzite,CachyOS,Asahi,Knoppix,Mandriva,Red Star OS"},
+ {cat:"Dev: Tools & Infra",q:"Name an operating system (past or present)",open:true,a:"Windows,macOS|Mac OS X|OS X,Linux,iOS,Android,ChromeOS,Unix,FreeBSD,OpenBSD,NetBSD,Solaris,AIX,HP-UX,MS-DOS|DOS,OS/2,BeOS,Haiku,Symbian,BlackBerry OS,Windows Phone,webOS,Tizen,HarmonyOS,Fuchsia,Plan 9,Minix,AmigaOS,RISC OS,QNX,VxWorks,FreeRTOS,ReactOS,iPadOS,watchOS,tvOS,visionOS,KaiOS,CP/M,Multics,z/OS,Wear OS,Fire OS,Palm OS,Windows Mobile,TempleOS,Classic Mac OS"},
+ {cat:"Dev: Tools & Infra",q:"Name a version control system",a:"Git,Subversion|SVN,Mercurial|hg,Perforce|Helix Core,CVS,Bazaar,Fossil,Darcs,ClearCase,Team Foundation|TFS|TFVC,Visual SourceSafe|SourceSafe,Pijul,BitKeeper,RCS,SCCS,Plastic SCM|Unity Version Control,Jujutsu|jj,Sapling"},
+ {cat:"Dev: Tools & Infra",q:"Name a CI/CD tool",open:true,a:"Jenkins,GitHub Actions,GitLab CI,CircleCI,Travis CI,Azure Pipelines|Azure DevOps,Bitbucket Pipelines,TeamCity,Bamboo,Argo CD|ArgoCD,Flux,Spinnaker,Tekton,Drone,Buildkite,AWS CodePipeline|CodePipeline,Google Cloud Build|Cloud Build,Harness,Octopus Deploy,GoCD,Concourse,Semaphore,Codefresh,Bitrise,Woodpecker,Dagger,AppVeyor,Netlify*,Vercel*"},
+ {cat:"Dev: Tools & Infra",q:"Name a keyboard key that isn't a letter or number",open:true,a:"Shift,Ctrl|Control,Alt|Option,Cmd|Command,Windows|Super|Win,Tab,Caps Lock,Esc|Escape,Enter|Return,Backspace,Delete|Del,Insert|Ins,Home,End,Page Up|PgUp,Page Down|PgDn,Space|Spacebar,Fn|Function,Print Screen|PrtSc,Scroll Lock,Pause|Break,Num Lock,Up Arrow,Down Arrow,Left Arrow,Right Arrow,F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,Menu|Context Menu,AltGr,Clear,Help,Eject"},
+
+ // ---- Dev: CS ----
+ {cat:"Dev: CS",key:"gof",q:"Name a Gang of Four design pattern",a:"Abstract Factory,Builder,Factory Method|Factory,Prototype,Singleton,Adapter,Bridge,Composite,Decorator,Facade,Flyweight,Proxy,Chain of Responsibility,Command,Interpreter,Iterator,Mediator,Memento,Observer,State,Strategy,Template Method,Visitor"},
+ {cat:"Dev: CS",q:"Name a creational design pattern",a:"Abstract Factory,Builder,Factory Method|Factory,Prototype,Singleton,Object Pool*,Dependency Injection*"},
+ {cat:"Dev: CS",q:"Name a structural design pattern",a:"Adapter,Bridge,Composite,Decorator,Facade,Flyweight,Proxy"},
+ {cat:"Dev: CS",q:"Name a behavioural design pattern",a:"Chain of Responsibility,Command,Interpreter,Iterator,Mediator,Memento,Observer,State,Strategy,Template Method,Visitor"},
+ {cat:"Dev: CS",q:"Name a data structure",open:true,a:"Array,Linked List,Doubly Linked List,Stack,Queue,Deque,Priority Queue,Heap,Binary Heap,Hash Map|Hash Table|Dictionary|Map,Hash Set|Set,Tree,Binary Tree,Binary Search Tree|BST,AVL Tree,Red-Black Tree,B-Tree,B+ Tree,Trie|Prefix Tree,Graph,Segment Tree,Fenwick Tree|Binary Indexed Tree,Bloom Filter,Skip List,Disjoint Set|Union Find,Circular Buffer|Ring Buffer,Matrix,Tuple,Bitmap|Bit Array|Bitset,Suffix Tree,Suffix Array,Quadtree,Octree,KD Tree,Splay Tree,Treap,Rope,Vector|Dynamic Array|ArrayList,Sparse Matrix,Adjacency List,Adjacency Matrix,Merkle Tree,Radix Tree,Fibonacci Heap,Interval Tree,LRU Cache*"},
+ {cat:"Dev: CS",q:"Name a sorting algorithm",a:"Bubble Sort|Bubble,Selection Sort|Selection,Insertion Sort|Insertion,Merge Sort|Merge,Quicksort|Quick Sort|Quick,Heapsort|Heap Sort|Heap,Shell Sort|Shell,Counting Sort|Counting,Radix Sort|Radix,Bucket Sort|Bucket,Timsort|Tim Sort,Introsort|Intro Sort,Cocktail Shaker Sort|Cocktail Sort,Comb Sort,Gnome Sort,Bogosort|Bogo Sort,Cycle Sort,Pancake Sort,Odd-Even Sort,Bitonic Sort,Strand Sort,Tree Sort,Patience Sort,Smoothsort,Block Sort,Stooge Sort,Library Sort,Bead Sort|Gravity Sort,Pigeonhole Sort,Flashsort,Sleep Sort*,Spaghetti Sort*,Pdqsort*"},
+ {cat:"Dev: CS",q:"Name a search or graph algorithm",open:true,a:"Binary Search,Linear Search,Breadth-First Search|BFS,Depth-First Search|DFS,Dijkstra|Dijkstra's,A*|A Star,Bellman-Ford,Floyd-Warshall,Prim|Prim's,Kruskal|Kruskal's,Topological Sort,Tarjan|Tarjan's,Kosaraju,Ford-Fulkerson,Edmonds-Karp,Johnson's,Bidirectional Search,Jump Search,Interpolation Search,Exponential Search,Ternary Search,Kahn's,Hungarian,Boruvka,PageRank,Minimax,Alpha-Beta Pruning,Monte Carlo Tree Search|MCTS,Union-Find*,Hill Climbing,Iterative Deepening,Dinic,Prim-Jarnik*"},
+ {cat:"Dev: CS",q:"Name an agile / scrum term",open:true,a:"Sprint,Stand-up|Daily Scrum|Standup,Retrospective|Retro,Sprint Planning,Sprint Review,Backlog,Product Backlog,Sprint Backlog,User Story|Story,Epic,Story Points,Velocity,Burndown Chart|Burndown,Scrum Master,Product Owner,Definition of Done,Definition of Ready,Kanban,Increment,Spike,Refinement|Grooming|Backlog Refinement,Acceptance Criteria,MVP,WIP Limit,Timebox,Task,Theme,Planning Poker,Burnup Chart|Burnup,Swimlane,Blocker,Release,Roadmap,Ticket,Sprint Goal,Scrum of Scrums,Initiative"},
+ {cat:"Dev: CS",q:"Name a three-letter tech acronym",open:true,a:"API,SQL,CSS,URL,DNS,SSH,TCP,UDP,VPN,CPU,GPU,RAM,ROM,SSD,HDD,USB,PDF,CLI,GUI,IDE,SDK,JWT,XML,PHP,AWS,GCP,ORM,MVC,CRM,ERP,SLA,SRE,DDD,TDD,BDD,OOP,DRY,ISP,LAN,WAN,NAT,DOM,CDN,MFA,SSO,IAM,VPC,FTP,IoT,NFC,RPC,CVE,XSS,WAF,TLS,SSL,MAC,BGP,ARP,SMS,CSV,PNG,GIF,JPG,SVG,EOF,CRUD*,REST*,HTTP*,JSON*,YAML*,KISS*,YAGNI*,SOLID*,LLM,RAG,MCP,NPM,CMS,SEO,UAT,QA*,CVS,SVN,ACL,PKI,OTP,RPA,SPA,SSR,SSG,PWA,BFF,MQTT,ETL*,K8S*"},
+ {cat:"Dev: CS",q:"Name a famous computer scientist or tech pioneer",open:true,a:"Alan Turing|Turing,Ada Lovelace|Lovelace,Grace Hopper|Hopper,Linus Torvalds|Torvalds,Dennis Ritchie|Ritchie,Ken Thompson,Donald Knuth|Knuth,Edsger Dijkstra|Dijkstra,Tim Berners-Lee,John von Neumann|von Neumann,Charles Babbage|Babbage,Margaret Hamilton,Bjarne Stroustrup|Stroustrup,Guido van Rossum,James Gosling|Gosling,Brendan Eich|Eich,Richard Stallman|Stallman,Steve Wozniak|Woz,Bill Gates*,Steve Jobs*,Barbara Liskov|Liskov,John McCarthy,Claude Shannon|Shannon,Vint Cerf,Bob Kahn,Alan Kay,Niklaus Wirth|Wirth,Tony Hoare|Hoare,Larry Wall,Yukihiro Matsumoto|Matz,Rasmus Lerdorf,Anders Hejlsberg,Martin Fowler,Kent Beck,Robert C. Martin|Uncle Bob,Geoffrey Hinton|Hinton,Yann LeCun|LeCun,Yoshua Bengio,Fei-Fei Li,John Carmack|Carmack,Katherine Johnson,Dorothy Vaughan,Hedy Lamarr*,Douglas Engelbart|Engelbart,Leslie Lamport|Lamport,Rob Pike,Brian Kernighan|Kernighan,Radia Perlman,Frances Allen,Shafi Goldwasser,Whitfield Diffie,Martin Hellman,Ron Rivest,Adi Shamir,Leonard Adleman,Jeff Dean,Sophie Wilson,Edgar Codd|Ted Codd|Codd,John Backus,Konrad Zuse,Alonzo Church,Andrew Ng*,Demis Hassabis*,Ilya Sutskever*"},
+ {cat:"Dev: CS",q:"Name a famous AI or robot from film, TV or games",open:true,a:"HAL 9000|HAL,R2-D2,C-3PO,WALL-E,EVE,The Terminator|Terminator|T-800,Skynet,Data,Bender,Johnny 5,Robby the Robot,Ava,Samantha,Ultron,Vision,JARVIS,Baymax,Optimus Prime,Megatron,BB-8,K-2SO,Marvin,Sonny,Agent Smith,The Iron Giant|Iron Giant,Chappie,David,Bishop,Ash,Roy Batty,MU-TH-UR|Mother,GLaDOS,Cortana,KITT,K-9|K9,RoboCop,Gort,Maria,TARS,CASE,M3GAN,Rosie,Dolores,Kryten,Holly,Twiki,Metal Mickey,Dalek*,Cyberman*,The Machine,SHODAN,Claptrap,EDI,Legion,Atlas,P-Body,AM,Mr. Robot*,David 8*,Number Six*,T-1000"},
+
+ // ---- Sport ----
+ {cat:"Sport",q:"Name a London club that has played in the Premier League",a:"Arsenal,Brentford,Charlton Athletic|Charlton,Chelsea,Crystal Palace|Palace,Fulham,Queens Park Rangers|QPR,Tottenham Hotspur|Tottenham|Spurs,West Ham United|West Ham,Wimbledon"},
+ {cat:"Sport",q:"Name a tennis Grand Slam tournament",a:"Australian Open,French Open|Roland Garros,Wimbledon,US Open"},
+ {cat:"Sport",q:"Name a Formula 1 team (past or present)",open:true,a:"Ferrari,McLaren,Mercedes,Red Bull,Williams,Aston Martin,Alpine,Haas,Racing Bulls|RB|VCARB,Sauber|Kick Sauber,Audi,Cadillac,Lotus,Brabham,Tyrrell,Jordan,Benetton,BAR|British American Racing,Toyota,Honda,Minardi,Force India,Racing Point,Toro Rosso|AlphaTauri,Renault,Jaguar,Stewart,Ligier,March,Arrows,Brawn GP|Brawn,Cooper,BRM,Vanwall,Maserati,Alfa Romeo,Virgin,Manor|Marussia,HRT,Caterham,Super Aguri,Spyker,Midland,Prost,Lola,Shadow,Hesketh,Wolf,Penske,Matra"},
+ {cat:"Sport",q:"Name a Formula 1 world champion",open:true,a:"Lewis Hamilton|Hamilton,Michael Schumacher|Schumacher,Max Verstappen|Verstappen,Sebastian Vettel|Vettel,Fernando Alonso|Alonso,Ayrton Senna|Senna,Alain Prost|Prost,Niki Lauda|Lauda,Juan Manuel Fangio|Fangio,Jackie Stewart,Jim Clark,Nelson Piquet|Piquet,Nico Rosberg,Kimi Raikkonen|Raikkonen,Jenson Button|Button,Mika Hakkinen|Hakkinen,Damon Hill,Graham Hill,Nigel Mansell|Mansell,Jack Brabham|Brabham,Jacques Villeneuve|Villeneuve,Emerson Fittipaldi|Fittipaldi,James Hunt|Hunt,Mario Andretti|Andretti,Alan Jones,Keke Rosberg,Jody Scheckter|Scheckter,Denny Hulme|Hulme,John Surtees|Surtees,Jochen Rindt|Rindt,Phil Hill,Mike Hawthorn|Hawthorn,Alberto Ascari|Ascari,Giuseppe Farina|Nino Farina|Farina,Lando Norris*|Norris"},
+ {cat:"Sport",q:"Name a piece in chess",a:"King,Queen,Rook|Castle,Bishop,Knight|Horse,Pawn"},
+
+ // ---- Film & TV ----
+ {cat:"Film & TV",q:"Name an actor who has played James Bond",a:"Sean Connery|Connery,George Lazenby|Lazenby,Roger Moore|Moore,Timothy Dalton|Dalton,Pierce Brosnan|Brosnan,Daniel Craig|Craig,David Niven*,Barry Nelson*"},
+ {cat:"Film & TV",q:"Name an actor who has played the Doctor in Doctor Who",a:"William Hartnell,Patrick Troughton,Jon Pertwee,Tom Baker,Peter Davison,Colin Baker,Sylvester McCoy,Paul McGann,Christopher Eccleston,David Tennant,Matt Smith,Peter Capaldi,Jodie Whittaker,Ncuti Gatwa,John Hurt*,Jo Martin*,Billie Piper*,Peter Cushing*"},
+ {cat:"Film & TV",q:"Name an official Disney Princess",a:"Snow White,Cinderella,Aurora|Sleeping Beauty,Ariel,Belle,Jasmine,Pocahontas,Mulan,Tiana,Rapunzel,Merida,Moana,Raya*,Elsa*,Anna*"},
+ {cat:"Film & TV",q:"Name one of the Seven Dwarfs",a:"Doc,Grumpy,Happy,Sleepy,Bashful,Sneezy,Dopey"},
+ {cat:"Film & TV",q:"Name a Harry Potter book",a:"Philosopher's Stone|Sorcerer's Stone,Chamber of Secrets,Prisoner of Azkaban,Goblet of Fire,Order of the Phoenix,Half-Blood Prince,Deathly Hallows,Cursed Child*"},
+ {cat:"Film & TV",q:"Name a Hogwarts house",a:"Gryffindor,Hufflepuff,Ravenclaw,Slytherin"},
+ {cat:"Film & TV",q:"Name a Cluedo suspect",a:"Miss Scarlett|Scarlett|Miss Scarlet,Colonel Mustard|Mustard,Mrs White|White,Reverend Green|Mr Green|Green,Mrs Peacock|Peacock,Professor Plum|Plum,Dr Orchid*|Orchid"},
+ {cat:"Film & TV",q:"Name a Cluedo weapon",a:"Candlestick,Dagger|Knife,Lead Pipe|Lead Piping,Revolver|Gun,Rope,Spanner|Wrench,Poison*"},
+ {cat:"Film & TV",q:"Name a Cluedo room",a:"Kitchen,Ballroom,Conservatory,Dining Room,Billiard Room,Library,Lounge,Hall,Study,Cellar*"},
+ {cat:"Film & TV",q:"Name a Teenage Mutant Ninja Turtle",a:"Leonardo,Michelangelo,Donatello,Raphael"},
+
+ // ---- Music ----
+ {cat:"Music",q:"Name a Beatles song",open:true,a:"Hey Jude,Let It Be,Yesterday,Help!|Help,Something,Come Together,Here Comes the Sun,Yellow Submarine,All You Need Is Love,Penny Lane,Strawberry Fields Forever,A Hard Day's Night,Can't Buy Me Love,Love Me Do,She Loves You,I Want to Hold Your Hand,Eleanor Rigby,Lucy in the Sky with Diamonds,Get Back,Twist and Shout,Blackbird,Day Tripper,Paperback Writer,Ticket to Ride,In My Life,Norwegian Wood,Michelle,Drive My Car,Revolution,While My Guitar Gently Weeps,Ob-La-Di Ob-La-Da,The Long and Winding Road,Across the Universe,Back in the U.S.S.R.|Back in the USSR,Helter Skelter,I Am the Walrus,A Day in the Life,With a Little Help from My Friends,Sgt. Pepper's Lonely Hearts Club Band|Sgt Pepper,Octopus's Garden,Here There and Everywhere,Good Day Sunshine,Taxman,Nowhere Man,Please Please Me,From Me to You,I Feel Fine,Eight Days a Week,We Can Work It Out,Hello Goodbye,Lady Madonna,The Ballad of John and Yoko,Dear Prudence,Golden Slumbers,Got to Get You into My Life,Rain,Tomorrow Never Knows,I Saw Her Standing There,And I Love Her,All My Loving,Magical Mystery Tour,Maxwell's Silver Hammer,Because,Girl,Julia,Now and Then"},
+ {cat:"Music",q:"Name a member of the Spice Girls",a:"Mel B|Scary Spice|Melanie Brown,Mel C|Sporty Spice|Melanie Chisholm,Emma Bunton|Baby Spice,Geri Halliwell|Ginger Spice|Geri,Victoria Beckham|Posh Spice|Victoria Adams"},
+ {cat:"Music",q:"Name a member of One Direction",a:"Harry Styles|Harry,Niall Horan|Niall,Liam Payne|Liam,Louis Tomlinson|Louis,Zayn Malik|Zayn"},
+ {cat:"Music",q:"Name a member of the Beatles",a:"John Lennon|Lennon|John,Paul McCartney|McCartney|Paul,George Harrison|Harrison|George,Ringo Starr|Ringo,Pete Best*,Stuart Sutcliffe*"},
+ {cat:"Music",q:"Name a musical instrument",open:true,a:"Piano,Guitar,Electric Guitar,Bass Guitar|Bass,Drums,Violin,Viola,Cello,Double Bass,Harp,Flute,Piccolo,Clarinet,Oboe,Bassoon,Saxophone|Sax,Trumpet,Trombone,French Horn|Horn,Tuba,Cornet,Euphonium,Harmonica,Accordion,Bagpipes,Banjo,Mandolin,Ukulele,Sitar,Organ,Harpsichord,Keyboard|Synthesizer,Xylophone,Glockenspiel,Marimba,Triangle,Tambourine,Cymbals,Timpani,Recorder,Didgeridoo,Bongos,Congas,Castanets,Maracas,Kazoo,Steel Drum|Steel Pan,Lute,Zither,Theremin,Tabla,Djembe,Cowbell,Ocarina,Pan Pipes,Melodica,Lyre,Balalaika,Koto,Shamisen,Erhu"},
+
+ // ---- Games ----
+ {cat:"Games",q:"Name a Super Mario character",open:true,a:"Mario,Luigi,Princess Peach|Peach,Bowser,Yoshi,Toad,Wario,Waluigi,Donkey Kong|DK,Diddy Kong,Princess Daisy|Daisy,Rosalina,Koopa Troopa|Koopa,Shy Guy,Boo,Birdo,Toadette,Bowser Jr.,Kamek,Lakitu,Goomba,Bullet Bill,Chain Chomp,Piranha Plant,Dry Bones,King Boo,Metal Mario,Baby Mario,Pauline,Captain Toad,Nabbit,Cappy,Blooper,Hammer Bro,Wiggler,Petey Piranha,Funky Kong,Cranky Kong,Dixie Kong,Toadsworth,Professor E. Gadd|E. Gadd,Bob-omb,Thwomp,Koopalings*"},
+ {cat:"Games",q:"Name a video game console",open:true,a:"PlayStation|PS1,PlayStation 2|PS2,PlayStation 3|PS3,PlayStation 4|PS4,PlayStation 5|PS5,PSP,PS Vita,Xbox,Xbox 360,Xbox One,Xbox Series X,Xbox Series S,NES,SNES|Super Nintendo,Nintendo 64|N64,GameCube,Wii,Wii U,Switch|Nintendo Switch,Switch 2,Game Boy,Game Boy Color,Game Boy Advance|GBA,Nintendo DS|DS,3DS,Mega Drive|Genesis,Master System,Saturn,Dreamcast,Game Gear,Atari 2600,Atari Jaguar,Atari Lynx,Neo Geo,TurboGrafx-16|PC Engine,3DO,Virtual Boy,Steam Deck,Ouya,Intellivision,ColecoVision,Vectrex,N-Gage,ZX Spectrum*,Commodore 64*,Amiga*,Magnavox Odyssey"},
+
+ // ---- Food & Drink ----
+ {cat:"Food & Drink",q:"Name a type of pasta",open:true,a:"Spaghetti,Penne,Fusilli,Farfalle|Bow Ties,Rigatoni,Linguine,Fettuccine,Tagliatelle,Lasagne|Lasagna,Macaroni,Ravioli,Tortellini,Conchiglie|Shells,Orzo,Pappardelle,Gnocchi*,Cannelloni,Orecchiette,Ziti,Bucatini,Vermicelli,Capellini|Angel Hair,Cavatappi,Gemelli,Radiatori,Rotini,Ditalini,Paccheri,Tortiglioni,Agnolotti,Casarecce,Strozzapreti,Trofie,Campanelle,Mafalde,Anelli,Stelline,Fregola,Lumache,Spaghettini,Tortelloni,Calamarata"},
+ {cat:"Food & Drink",q:"Name a cheese",open:true,a:"Cheddar,Brie,Camembert,Stilton,Mozzarella,Parmesan|Parmigiano Reggiano,Feta,Gouda,Edam,Emmental,Gruyere,Roquefort,Gorgonzola,Halloumi,Manchego,Ricotta,Mascarpone,Wensleydale,Red Leicester,Double Gloucester,Cheshire,Lancashire,Caerphilly,Comte,Raclette,Taleggio,Pecorino,Provolone,Burrata,Paneer,Monterey Jack,Colby,Jarlsberg,Havarti,Port Salut,Boursin,Cottage Cheese,Cream Cheese,Goat's Cheese|Chevre,Reblochon,Munster,Leerdammer,Grana Padano,Asiago,Fontina,Danish Blue,Stinking Bishop,Shropshire Blue,Applewood,Babybel,Dairylea*,Wensleydale with Cranberries*"},
+ {cat:"Food & Drink",q:"Name a herb or spice",open:true,a:"Basil,Oregano,Thyme,Rosemary,Sage,Parsley,Coriander|Cilantro,Mint,Dill,Chives,Tarragon,Bay Leaf|Bay,Marjoram,Lemongrass,Cumin,Turmeric,Paprika,Cinnamon,Nutmeg,Cloves,Ginger,Cardamom,Saffron,Black Pepper|Pepper,Chilli|Chili|Cayenne,Star Anise,Fennel,Mustard Seed,Allspice,Vanilla,Garlic*,Sumac,Za'atar*,Fenugreek,Caraway,Juniper,Mace,Asafoetida,Garam Masala*,Chinese Five Spice*,Curry Leaf,Kaffir Lime Leaf,Lavender,Sorrel,Chervil,Lovage,Anise,Horseradish,Wasabi,Nigella,Ras el Hanout*"},
+ {cat:"Food & Drink",q:"Name a cocktail",open:true,a:"Mojito,Margarita,Martini,Cosmopolitan,Old Fashioned,Negroni,Pina Colada,Daiquiri,Manhattan,Long Island Iced Tea,Bloody Mary,Espresso Martini,Mai Tai,Moscow Mule,Aperol Spritz|Spritz,Sex on the Beach,Pornstar Martini|Passion Fruit Martini,Whiskey Sour|Whisky Sour,Caipirinha,Tequila Sunrise,Mimosa,Bellini,White Russian,Black Russian,Sidecar,Gimlet,Tom Collins,Paloma,Dark and Stormy,Zombie,Singapore Sling,French 75,Sazerac,Mint Julep,Pisco Sour,Bramble,Hurricane,Blue Lagoon,Kir Royale,Cuba Libre,Gin Fizz,Amaretto Sour,Woo Woo,Screwdriver,Hugo Spritz,Irish Coffee,Grasshopper,Aviation,Last Word,Boulevardier,Penicillin,Vesper"},
+ {cat:"Food & Drink",q:"Name a vegetable",open:true,a:"Carrot,Potato,Broccoli,Cauliflower,Cabbage,Lettuce,Spinach,Kale,Peas,Green Beans,Runner Beans,Broad Beans,Sweetcorn|Corn,Onion,Garlic,Leek,Celery,Cucumber,Courgette|Zucchini,Aubergine|Eggplant,Pepper|Bell Pepper,Tomato*,Mushroom*,Asparagus,Brussels Sprouts|Sprouts,Beetroot|Beet,Parsnip,Turnip,Swede|Rutabaga,Radish,Sweet Potato,Butternut Squash|Squash,Pumpkin,Artichoke,Okra,Pak Choi|Bok Choy,Fennel,Celeriac,Kohlrabi,Watercress,Rocket|Arugula,Chard,Spring Onion|Scallion,Shallot,Yam,Cassava,Edamame,Mangetout|Snow Peas,Sugar Snap Peas,Endive,Chicory,Jerusalem Artichoke,Samphire,Romanesco,Daikon"},
+ {cat:"Food & Drink",q:"Name a chocolate bar (UK)",open:true,a:"Mars,Snickers,Twix,Bounty,Milky Way,Galaxy,Dairy Milk,Kit Kat,Aero,Crunchie,Flake,Twirl,Wispa,Double Decker,Boost,Picnic,Lion,Yorkie,Toffee Crisp,Fudge,Caramac,Timeout,Starbar,Turkish Delight,Topic,Freddo,Fruit and Nut,Wholenut,Caramel,Ripple,Drifter,Breakaway,Penguin,Club,Kinder Bueno,Toblerone,Ritter Sport,Lindt,Maltesers*,Buttons*,Rolo*,Smarties*,Mint Crisp,Marathon*,Galaxy Caramel,Twix Xtra,Tiffin,Boost Duo,Animal Bar,Curly Wurly,Chomp,Milkybar,Fry's Chocolate Cream,Fry's Turkish Delight,Crunchie Rocks*"},
+
+ // ---- Culture ----
+ {cat:"Culture",q:"Name a day of the week",a:"Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"},
+ {cat:"Culture",q:"Name a season",a:"Spring,Summer,Autumn|Fall,Winter"},
+ {cat:"Culture",q:"Name a Greek god or goddess",open:true,a:"Zeus,Hera,Poseidon,Demeter,Athena,Apollo,Artemis,Ares,Aphrodite,Hephaestus,Hermes,Dionysus,Hades,Hestia,Persephone,Eros,Nike,Hecate,Pan,Gaia,Uranus,Cronus|Kronos,Rhea,Helios,Selene,Eos,Nyx,Hypnos,Thanatos,Nemesis,Tyche,Iris,Hebe,Asclepius,Morpheus,Atlas*,Prometheus*,Heracles*|Hercules*,Chaos,Erebus,Aeolus,Triton,Amphitrite,Leto,Themis,Mnemosyne,Eris,Harmonia,Ananke"},
+ {cat:"Culture",q:"Name a Norse god",open:true,a:"Odin,Thor,Loki,Frigg,Freyja|Freya,Freyr|Frey,Baldr|Balder,Tyr,Heimdall,Hel,Njord,Bragi,Idun|Idunn,Hodr|Hod,Vidar,Vali,Ullr,Forseti,Sif,Skadi,Aegir,Ran,Mimir,Magni,Modi,Jord,Sol,Mani,Kvasir,Fenrir*,Jormungandr*"},
+ {cat:"Culture",q:"Name a Roman emperor",open:true,a:"Augustus,Tiberius,Caligula,Claudius,Nero,Galba,Otho,Vitellius,Vespasian,Titus,Domitian,Nerva,Trajan,Hadrian,Antoninus Pius,Marcus Aurelius,Lucius Verus,Commodus,Pertinax,Septimius Severus,Caracalla,Geta,Elagabalus,Severus Alexander,Maximinus Thrax,Gordian III,Philip the Arab,Decius,Valerian,Gallienus,Claudius Gothicus,Aurelian,Diocletian,Maximian,Constantine|Constantine the Great,Constantius,Julian|Julian the Apostate,Valentinian,Valens,Theodosius,Honorius,Romulus Augustulus,Justinian*,Julius Caesar*"},
+ {cat:"Culture",q:"Name a wife of Henry VIII",a:"Catherine of Aragon,Anne Boleyn,Jane Seymour,Anne of Cleves,Catherine Howard,Catherine Parr"},
+ {cat:"Culture",q:"Name a British monarch since 1066",open:true,a:"William the Conqueror|William I,William II,Henry I,Stephen,Henry II,Richard I|Richard the Lionheart,John,Henry III,Edward I,Edward II,Edward III,Richard II,Henry IV,Henry V,Henry VI,Edward IV,Edward V,Richard III,Henry VII,Henry VIII,Edward VI,Lady Jane Grey*,Mary I,Elizabeth I,James I,Charles I,Charles II,James II,William III,Mary II,Anne,George I,George II,George III,George IV,William IV,Victoria,Edward VII,George V,Edward VIII,George VI,Elizabeth II,Charles III,Matilda*,Oliver Cromwell*"},
+ {cat:"Culture",q:"Name a UK Prime Minister since 1900",a:"Arthur Balfour|Balfour,Henry Campbell-Bannerman|Campbell-Bannerman,H. H. Asquith|Asquith,David Lloyd George|Lloyd George,Bonar Law,Stanley Baldwin|Baldwin,Ramsay MacDonald|MacDonald,Neville Chamberlain|Chamberlain,Winston Churchill|Churchill,Clement Attlee|Attlee,Anthony Eden|Eden,Harold Macmillan|Macmillan,Alec Douglas-Home|Douglas-Home,Harold Wilson|Wilson,Edward Heath|Ted Heath|Heath,James Callaghan|Callaghan,Margaret Thatcher|Thatcher,John Major|Major,Tony Blair|Blair,Gordon Brown|Brown,David Cameron|Cameron,Theresa May|May,Boris Johnson|Johnson,Liz Truss|Truss,Rishi Sunak|Sunak,Keir Starmer|Starmer,Lord Salisbury*|Salisbury"},
+ {cat:"Culture",q:"Name a US President",open:true,a:"George Washington|Washington,John Adams,Thomas Jefferson|Jefferson,James Madison|Madison,James Monroe|Monroe,John Quincy Adams,Andrew Jackson|Jackson,Martin Van Buren|Van Buren,William Henry Harrison,John Tyler|Tyler,James K. Polk|Polk,Zachary Taylor|Taylor,Millard Fillmore|Fillmore,Franklin Pierce|Pierce,James Buchanan|Buchanan,Abraham Lincoln|Lincoln,Andrew Johnson,Ulysses S. Grant|Grant,Rutherford B. Hayes|Hayes,James Garfield|Garfield,Chester Arthur|Arthur,Grover Cleveland|Cleveland,Benjamin Harrison,William McKinley|McKinley,Theodore Roosevelt|Teddy Roosevelt,William Howard Taft|Taft,Woodrow Wilson|Wilson,Warren Harding|Harding,Calvin Coolidge|Coolidge,Herbert Hoover|Hoover,Franklin D. Roosevelt|FDR,Harry Truman|Truman,Dwight Eisenhower|Eisenhower|Ike,John F. Kennedy|JFK|Kennedy,Lyndon B. Johnson|LBJ,Richard Nixon|Nixon,Gerald Ford|Ford,Jimmy Carter|Carter,Ronald Reagan|Reagan,George H. W. Bush,Bill Clinton|Clinton,George W. Bush,Barack Obama|Obama,Donald Trump|Trump,Joe Biden|Biden"},
+ {cat:"Culture",q:"Name a Shakespeare tragedy",a:"Hamlet,Macbeth,King Lear,Othello,Romeo and Juliet,Julius Caesar,Antony and Cleopatra,Coriolanus,Titus Andronicus,Timon of Athens,Troilus and Cressida*,Cymbeline*"},
+ {cat:"Culture",q:"Name a famous painter",open:true,a:"Leonardo da Vinci|Da Vinci|Leonardo,Michelangelo,Raphael,Vincent van Gogh|Van Gogh,Pablo Picasso|Picasso,Claude Monet|Monet,Rembrandt,Salvador Dali|Dali,Frida Kahlo|Kahlo,Johannes Vermeer|Vermeer,Edvard Munch|Munch,Gustav Klimt|Klimt,Henri Matisse|Matisse,Paul Cezanne|Cezanne,Edgar Degas|Degas,Pierre-Auguste Renoir|Renoir,Andy Warhol|Warhol,Jackson Pollock|Pollock,Caravaggio,Botticelli,Titian,J. M. W. Turner|Turner,John Constable|Constable,Francisco Goya|Goya,Diego Velazquez|Velazquez,Rene Magritte|Magritte,Georgia O'Keeffe|O'Keeffe,Edward Hopper|Hopper,Mark Rothko|Rothko,Wassily Kandinsky|Kandinsky,Paul Gauguin|Gauguin,Hieronymus Bosch|Bosch,Jan van Eyck|Van Eyck,David Hockney|Hockney,Banksy,L. S. Lowry|Lowry,Francis Bacon,Lucian Freud,Joan Miro|Miro,Roy Lichtenstein|Lichtenstein,Keith Haring|Haring,Jean-Michel Basquiat|Basquiat,Peter Paul Rubens|Rubens,El Greco,Albrecht Durer|Durer,Gustave Courbet|Courbet,Eugene Delacroix|Delacroix,Piet Mondrian|Mondrian,Marc Chagall|Chagall,Tracey Emin*,Damien Hirst*"},
+
+ // ---- Everyday ----
+ {cat:"Everyday",q:"Name a breed of cat",open:true,a:"Persian,Siamese,Maine Coon,Bengal,Ragdoll,Sphynx,British Shorthair,Scottish Fold,Abyssinian,Russian Blue,Burmese,Birman,Norwegian Forest Cat,Devon Rex,Cornish Rex,Exotic Shorthair,Oriental,Savannah,Manx,Siberian,Tonkinese,Turkish Van,Turkish Angora,American Shorthair,Himalayan,Balinese,Bombay,Chartreux,Egyptian Mau,Havana Brown,Korat,LaPerm,Munchkin,Ocicat,Selkirk Rex,Singapura,Snowshoe,Somali,Toyger,Burmilla,Ragamuffin,Japanese Bobtail,Nebelung,Tabby*,Tortoiseshell*,Ginger*"},
+ {cat:"Everyday",q:"Name a British supermarket (past or present)",open:true,a:"Tesco,Sainsbury's,Asda,Morrisons,Aldi,Lidl,Waitrose,Co-op,Marks & Spencer|M&S,Iceland,Ocado,Budgens,Spar,Londis,Booths,Costco,Farmfoods,Heron Foods,Safeway,Somerfield,Kwik Save,Netto,Gateway,Fine Fare,Presto,Jack's,Amazon Fresh,Whole Foods,Planet Organic,Nisa,Premier,One Stop,Bargain Booze*,Poundland*,B&M*,Home Bargains*,Abel & Cole*"},
+ {cat:"Everyday",q:"Name a social media platform or messaging app",open:true,a:"Facebook,Instagram,X|Twitter,TikTok,Snapchat,LinkedIn,YouTube,Pinterest,Reddit,Tumblr,WhatsApp,Telegram,Signal,Discord,Slack,Microsoft Teams|Teams,Threads,Bluesky,Mastodon,BeReal,WeChat,Weibo,LINE,Viber,Messenger,MySpace,Bebo,Friends Reunited,Vine,Google+,Clubhouse,Twitch,Kik,Skype,iMessage,Quora,Flickr,Vimeo,Periscope,Hinge*,Tinder*,Strava*,Nextdoor,Truth Social,Yik Yak"},
+ {cat:"Everyday",q:"Name an emoji (describe it)",open:true,a:"Smiley|Smile,Laughing|Crying with Laughter|Tears of Joy,Heart|Red Heart,Thumbs Up,Thumbs Down,Fire,Rocket,Eyes,Skull,Clown,Poop|Pile of Poo,Thinking Face,Shrug,Facepalm,Party Popper|Tada,Clapping|Clap,Praying Hands|Pray,Wink,Kissing Face,Heart Eyes,Sunglasses|Cool,Crying|Sob,Angry,Upside-down Face,Rolling Eyes,Melting Face,Ghost,Alien,Robot,Unicorn,Rainbow,Sparkles,Star,100,Check Mark|Tick,Cross Mark,Warning,Bug,Coffee,Pizza,Beer,Avocado,Aubergine|Eggplant,Peach,Goat,Cat,Dog,Monkey|See No Evil,Waving Hand|Wave,Muscle|Flexed Biceps,OK Hand,Peace Sign|Victory,Salute,Nerd Face,Zany Face,Pleading Face,Grimacing,Sweat Smile,Hugging Face,Shushing Face,Mind Blown|Exploding Head"},
+];
+
+// ---------- Derived questions: filters over the base lists above ----------
+// Appended after the hand-written ones so existing question ids stay stable.
+(function(){
+  const base = k => BANK.find(b=>b.key===k);
+  const raws = k => base(k).a.split(",").map(s=>s.trim()).filter(Boolean);
+  const canon = r => r.split("|")[0].replace(/\*$/,"");
+  const isDeb = r => /\*/.test(r);
+  const letters = c => c.toLowerCase().normalize("NFD").replace(/[^a-z]/g,"");
+  const add = (k,cat,q,fn,min=4) => {
+    const a = raws(k).filter((r,i)=>fn(canon(r),i,r));
+    if(a.filter(r=>!isDeb(r)).length>=min && !BANK.some(x=>x.q===q)) BANK.push({cat,q,a:a.join(","),open:base(k).open});
+  };
+  const byLetter = (k,cat,noun,min) => {
+    for(const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+      add(k,cat,`Name ${noun} beginning with ${L}`, c=>c[0].toUpperCase()===L, min);
+  };
+  const vowels = c => [..."aeiou"].every(v=>letters(c).includes(v));
+
+  // Elements (list is in atomic-number order, so index+1 = atomic number)
+  byLetter("elements","Elements","a chemical element",6);
+  add("elements","Elements","Name a chemical element beginning with D or E",c=>/^[DE]/.test(c));
+  add("elements","Elements","Name a chemical element beginning with X, Y or Z",c=>/^[XYZ]/.test(c));
+  add("elements","Elements","Name a chemical element beginning with F or G",c=>/^[FG]/.test(c));
+  add("elements","Elements","Name a chemical element beginning with H, I or K",c=>/^[HIK]/.test(c));
+  add("elements","Elements","Name a chemical element ending in -IUM",c=>/ium$/i.test(c));
+  add("elements","Elements","Name a chemical element NOT ending in -ium",c=>!/ium$/i.test(c));
+  add("elements","Elements","Name a chemical element ending in -ON",c=>/on$/i.test(c));
+  add("elements","Elements","Name a chemical element ending in -INE",c=>/ine$/i.test(c));
+  add("elements","Elements","Name a chemical element with 4 letters or fewer",c=>letters(c).length<=4);
+  add("elements","Elements","Name a chemical element with 12+ letters",c=>letters(c).length>=12);
+  add("elements","Elements","Name one of the first 10 elements",(c,i)=>i<10);
+  add("elements","Elements","Name one of the first 20 elements",(c,i)=>i<20);
+  add("elements","Elements","Name an element with atomic number 21 to 40",(c,i)=>i>=20&&i<40);
+  add("elements","Elements","Name an element with atomic number over 92 (synthetic)",(c,i)=>i>=92);
+  add("elements","Elements","Name a chemical element containing the letters A, E and I",c=>["a","e","i"].every(v=>letters(c).includes(v)));
+
+  // Countries
+  byLetter("countries","Countries","a country",8);
+  add("countries","Countries","Name a country ending in -IA",c=>/ia$/i.test(c));
+  add("countries","Countries","Name a country ending in -STAN",c=>/stan$/i.test(c));
+  add("countries","Countries","Name a country containing the word 'land'",c=>/land/i.test(c));
+  add("countries","Countries","Name a country with a name of 4 letters",c=>letters(c).length===4);
+  add("countries","Countries","Name a country with a name of 5 letters",c=>letters(c).length===5);
+  add("countries","Countries","Name a country with a name of 12+ letters",c=>letters(c).length>=12);
+  add("countries","Countries","Name a country whose name is two or more words",c=>/\s/.test(c));
+  add("countries","Countries","Name a country that starts and ends with the same letter",c=>{const l=letters(c);return l[0]===l[l.length-1]});
+  add("countries","Countries","Name a country that starts AND ends with A",c=>/^a.*a$/i.test(letters(c)));
+  add("countries","Countries","Name a country containing a double letter (e.g. Greece)",c=>/([a-z])\1/.test(c.toLowerCase()));
+  add("countries","Countries","Name a country containing the letter Z",c=>letters(c).includes("z"));
+  add("countries","Countries","Name a country containing the letter K",c=>letters(c).includes("k"));
+  add("countries","Countries","Name a country containing the letter J, Q or X",c=>/[jqx]/.test(letters(c)));
+  add("countries","Countries","Name a country containing the letter W",c=>letters(c).includes("w"));
+  add("countries","Countries","Name a country containing the letter V",c=>letters(c).includes("v"));
+  add("countries","Countries","Name a country with all five vowels in its name",vowels);
+  add("countries","Countries","Name a country with no letter A in its name",c=>!letters(c).includes("a"));
+  add("countries","Countries","Name a country containing 'Guinea'",c=>/guinea/i.test(c));
+  add("countries","Countries","Name a country with 'and' in its name",c=>/ and /i.test(c));
+  add("countries","Countries","Name a country starting with North, South, East or Central",c=>/^(north|south|east|central)\b/i.test(c));
+  add("countries","Countries","Name a country starting with a vowel",c=>/^[AEIOU]/.test(c));
+
+  // Capitals
+  byLetter("capitals","Capitals & Cities","a national capital",7);
+  add("capitals","Capitals & Cities","Name a capital city with 4 letters or fewer",c=>letters(c).length<=4);
+  add("capitals","Capitals & Cities","Name a capital city whose name is two or more words",c=>/\s/.test(c));
+  add("capitals","Capitals & Cities","Name a capital city ending in A",c=>/a$/i.test(letters(c)));
+  add("capitals","Capitals & Cities","Name a capital city containing the letter K",c=>letters(c).includes("k"));
+  add("capitals","Capitals & Cities","Name a capital city beginning with a vowel",c=>/^[AEIOU]/.test(c));
+
+  // US States
+  add("states","US States","Name a US state ending in A",c=>/a$/i.test(c));
+  add("states","US States","Name a US state NOT ending in a vowel",c=>!/[aeiou]$/i.test(c));
+  add("states","US States","Name a US state that's two words",c=>/\s/.test(c));
+  add("states","US States","Name a US state containing a double letter",c=>/([a-z])\1/.test(c.toLowerCase()));
+  add("states","US States","Name a US state beginning with a vowel",c=>/^[AEIOU]/.test(c));
+  add("states","US States","Name a US state with 6 letters or fewer",c=>letters(c).length<=6);
+  add("states","US States","Name a US state with 10+ letters",c=>letters(c).length>=10);
+  add("states","US States","Name a US state containing the letter K",c=>letters(c).includes("k"));
+  add("states","US States","Name a US state beginning with A, C or I",c=>/^[ACI]/.test(c));
+  add("states","US States","Name a US state beginning with N",c=>/^N/.test(c));
+  add("states","US States","Name a US state beginning with M",c=>/^M/.test(c));
+  add("states","US States","Name a US state beginning with O, T, U or V",c=>/^[OTUV]/.test(c));
+
+  // Premier League
+  add("pl","Sport","Name a Premier League club (ever) with 'United' in its name",c=>/united/i.test(c));
+  add("pl","Sport","Name a Premier League club (ever) with 'City' in its name",c=>/city/i.test(c));
+  add("pl","Sport","Name a Premier League club (ever) beginning with B",c=>/^B|^AFC B/.test(c));
+  add("pl","Sport","Name a Premier League club (ever) beginning with S",c=>/^S/.test(c));
+  add("pl","Sport","Name a Premier League club (ever) beginning with A to E",c=>/^(AFC )?[A-E]/.test(c));
+
+  // Dev
+  add("langs","Dev: Languages","Name a programming language beginning with C",c=>/^C/.test(c));
+  add("langs","Dev: Languages","Name a programming language beginning with P, R or S",c=>/^[PRS]/.test(c));
+  add("http","Dev: Web","Name a 2xx (success) HTTP status code",c=>c[0]==="2");
+  add("http","Dev: Web","Name a 3xx (redirect) HTTP status code",c=>c[0]==="3");
+  add("http","Dev: Web","Name a 4xx (client error) HTTP status code",c=>c[0]==="4");
+  add("http","Dev: Web","Name a 5xx (server error) HTTP status code",c=>c[0]==="5");
+  add("html","Dev: Web","Name an HTML tag that's a single letter",c=>/^[a-z]$/.test(c));
+  add("html","Dev: Web","Name an HTML tag that's exactly two characters",c=>c.length===2);
+  add("html","Dev: Web","Name an HTML tag with 7+ letters",c=>c.length>=7);
+  add("linux","Dev: Tools & Infra","Name a Unix command that's exactly two letters",c=>c.length===2);
+  add("pybuiltins","Dev: Languages","Name a Python built-in function beginning with S",c=>/^s/.test(c));
+  add("pybuiltins","Dev: Languages","Name a Python built-in function beginning with I",c=>/^i/.test(c));
+  add("pybuiltins","Dev: Languages","Name a Python built-in that's also a type (int, str…)",c=>["bool","bytearray","bytes","complex","dict","float","frozenset","int","list","memoryview","object","range","set","slice","str","tuple","type"].includes(c));
+  add("aws","Dev: Tools & Infra","Name an AWS service that's an acronym (all caps, like S3)",c=>/^[A-Z0-9]{2,}$/.test(c.replace(/\s/g,"")));
+  add("aws","Dev: Tools & Infra","Name an AWS service beginning with C",c=>/^C/.test(c));
+})();
+
+// ---------- Helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+  .replace(/&/g," and ").replace(/^\s*the\s+/,"").replace(/\bst\.?\s/g,"saint ").replace(/[^a-z0-9+#]/g,"");
+function lev(a,b){if(a===b)return 0;const m=a.length,n=b.length;if(!m||!n)return m||n;let p=[...Array(n+1).keys()];
+  for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+
+function parseAnswers(q){
+  if(q._parsed) return q._parsed;
+  const list = (Array.isArray(q.a)?q.a:q.a.split(",")).map(x=>x.trim()).filter(Boolean).map(raw=>{
+    const names = raw.split("|").map(s=>s.trim());
+    const deb = names.some(n=>n.endsWith("*"));
+    const clean = names.map(n=>n.replace(/\*$/,""));
+    return {canon:clean[0], aliases:clean, keys:clean.map(norm), deb};
+  });
+  return q._parsed = list;
+}
+function findMatch(q,text){
+  const t = norm(text); if(!t) return null;
+  const list = parseAnswers(q);
+  for(const e of list) if(e.keys.includes(t)) return {e,fuzzy:false};
+  let best=null,bd=99;
+  for(const e of list) for(const k of e.keys){const d=lev(t,k); if(d<bd){bd=d;best=e}}
+  const tol = t.length<=4?0:t.length<=7?1:2;
+  return best && bd<=tol ? {e:best,fuzzy:true} : null;
+}
+// Type-ahead: prefix > contains > misspelled prefix, best 6 distinct answers.
+function suggest(q,text){
+  const t = norm(text); if(!t) return [];
+  const tol = t.length<3?0:Math.max(1,Math.floor(t.length/3));
+  const scored = [];
+  for(const e of parseAnswers(q)){
+    let best = 99, via = e.canon;
+    e.keys.forEach((k,i)=>{
+      let s = k.startsWith(t)?0 : k.includes(t)?1 : (()=>{const d=Math.min(lev(t,k.slice(0,t.length)),lev(t,k));return d<=tol?2+d:99})();
+      if(s<best){best=s;via=e.aliases[i]}
+    });
+    if(best<99) scored.push({e,s:best,via});
+  }
+  scored.sort((a,b)=>a.s-b.s||a.e.canon.length-b.e.canon.length);
+  const out = scored.slice(0,6);
+  return out.length===1 && norm(out[0].e.canon)===t ? [] : out;
+}
+const keyFor = (q,text) => { const m=findMatch(q,text); return m ? "c:"+m.e.canon : "n:"+norm(text); };
+
+// ---------- State ----------
+const LS = "uniqueQuiz.v1";
+let S = load() || {phase:"setup", players:[], startLives:5, blankLoses:true, invalidLoses:true,
+  custom:[], used:[], current:null, answers:{}, overrides:{}, secret:{on:false,count:3,list:[],shown:false}, log:[], undo:[]};
+function load(){try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){} render()}
+const allQs = () => [...BANK.map((q,i)=>({...q,id:"b"+i})), ...S.custom.map((q,i)=>({...q,id:"c"+i,cat:"Custom"}))];
+const qById = id => { const q = allQs().find(q=>q.id===id); if(q){ const src = id[0]==="b"?BANK[+id.slice(1)]:S.custom[+id.slice(1)]; q._parsed = parseAnswers(src);} return q; };
+const alive = () => S.players.filter(p=>p.lives>0);
+function snapshot(){ const {undo,...rest}=S; S.undo.push(JSON.stringify(rest)); if(S.undo.length>30) S.undo.shift(); }
+function undo(){ const u=S.undo.pop(); if(!u) return; const undoStack=S.undo; S=JSON.parse(u); S.undo=undoStack; save(); }
+
+// ---------- Round evaluation ----------
+function evaluate(){
+  const q = S.current && qById(S.current); if(!q) return [];
+  const rows = alive().map(p=>{
+    const text = (S.answers[p.id]||"").trim();
+    const r = {p,text,reasons:[],match:null};
+    if(!text){ r.blank=true; if(S.blankLoses) r.reasons.push(["bad","No answer"]); return r; }
+    const m = findMatch(q,text); r.match=m; r.key=keyFor(q,text);
+    if(m){ r.reasons.push([m.fuzzy?"warn":"ok", (m.fuzzy?"≈ ":"✓ ")+m.e.canon]); if(m.e.deb) r.reasons.push(["warn","debatable"]); }
+    else if(q.open) r.reasons.push(["warn","Not in list — your call"]);
+    else { r.reasons.push(["bad","Not in list"]); if(S.invalidLoses) r.invalid=true; }
+    return r;
+  });
+  const counts={}; rows.forEach(r=>{ if(r.key) (counts[r.key]=counts[r.key]||[]).push(r.p.name) });
+  const host = hostEval(q);
+  if(host && host.key) (counts[host.key]=counts[host.key]||[]).push("Host");
+  rows.forEach(r=>{
+    const others = r.key ? counts[r.key].filter(n=>n!==r.p.name) : [];
+    // Playing against the host: only matching the host counts, player-vs-player matches are fine.
+    if(host){
+      if(others.includes("Host")){ r.clash=true; r.reasons.push(["bad","Clash: Host"]); }
+      const peers = others.filter(n=>n!=="Host");
+      if(peers.length) r.reasons.push(["ok","Same as "+peers.join(", ")+" (fine)"]);
+    } else if(others.length){ r.clash=true; r.reasons.push(["bad","Clash: "+others.join(", ")]); }
+    const auto = (r.blank&&S.blankLoses)||r.invalid||r.clash;
+    const ov = S.overrides[r.p.id];
+    r.loses = ov==="safe"?false: ov==="lose"?true: !!auto;
+    r.ov = ov||"auto";
+  });
+  return rows;
+}
+// The host plays as an extra answer that can't lose lives; players clash with it like anyone else.
+function hostEval(q){
+  if(!S.secret.on || !q) return null;
+  const text=(S.answers.host||"").trim();
+  if(!text) return {text, reasons:[["warn","Enter your answer"]]};
+  const m=findMatch(q,text);
+  return {text, match:m, key:keyFor(q,text),
+    reasons:[m ? [m.fuzzy?"warn":"ok",(m.fuzzy?"≈ ":"✓ ")+m.e.canon] : ["warn","Not in list"]]};
+}
+function applyRound(){
+  const q=qById(S.current); const rows=evaluate(); if(!q||!rows.length) return;
+  snapshot();
+  const losers = rows.filter(r=>r.loses);
+  losers.forEach(r=>{ const p=S.players.find(x=>x.id===r.p.id); p.lives=Math.max(0,p.lives-1); });
+  S.log.unshift(`<b>${esc(q.q)}</b> — ${losers.length? "lost a life: "+losers.map(r=>esc(r.p.name)+(r.text?` (“${esc(r.text)}”)`:"")).join(", ") : "nobody lost a life"}`+
+    (S.secret.on&&(S.answers.host||"").trim()?` · host said “${esc(S.answers.host.trim())}”`:""));
+  if(!S.used.includes(S.current)) S.used.push(S.current);
+  S.answers={}; S.overrides={}; S.secret.list=[]; S.secret.shown=false;
+  S.current=null; aFilter="";
+  save();
+}
+
+// ---------- Rendering ----------
+let qFilter="", aFilter="", sugFor=null, sugIdx=0, openCats=new Set();
+function currentSugs(){ const q=S.current&&qById(S.current); return q&&sugFor!=null ? suggest(q,S.answers[sugFor]||"") : []; }
+// Who a click in the answer reference fills: last-focused box, else first empty one.
+let lastAns=null;
+const ansIds = () => [...alive().map(p=>String(p.id)), ...(S.secret.on?["host"]:[])];
+function refTarget(){
+  const ids=ansIds();
+  if(lastAns!=null && ids.includes(String(lastAns))) return String(lastAns);
+  return ids.find(id=>!(S.answers[id]||"").trim()) || null;
+}
+function fillFromRef(val){
+  const id=refTarget(); if(!id) return alertBox("Everyone has an answer. Click a player's box to change theirs.");
+  const ids=ansIds(), i=ids.indexOf(id);
+  S.answers[id]=val;
+  lastAns=[...ids.slice(i+1),...ids.slice(0,i)].find(x=>!(S.answers[x]||"").trim()) || null;
+  sugFor=null; if(document.activeElement) document.activeElement.blur(); save();
+}
+let justPicked=null; // stops the refocus after a pick from reopening the dropdown
+function pick(pid,val){ S.answers[pid]=val; sugFor=null; sugIdx=0; justPicked=String(pid); save(); justPicked=null; }
+function hearts(n,max){ let s=""; for(let i=0;i<Math.max(n,max);i++) s+= i<n?"♥":'<span class="e">♥</span>'; return `<span class="hearts">${s}</span>`; }
+
+function render(){
+  if(location.hash==="#board") return renderBoard();
+  if(S.phase==="setup") return renderSetup();
+  const focus = document.activeElement && document.activeElement.dataset.f; const caret = document.activeElement && document.activeElement.selectionStart;
+  const q = S.current && qById(S.current);
+  const rows = evaluate();
+  const host = hostEval(q);
+  const al = alive();
+  const winner = S.players.length>1 && al.length===1 ? al[0] : null;
+  const takenKeys = new Set(rows.filter(r=>r.match).map(r=>r.match.e.canon));
+  const clashKeys = new Set(rows.filter(r=>r.match&&r.clash).map(r=>r.match.e.canon));
+  const hostM = q && S.secret.on && findMatch(q,S.answers.host||"");
+  if(hostM) takenKeys.add(hostM.e.canon);
+
+  // question list
+  const groups={};
+  allQs().filter(x=>!qFilter||(x.q+" "+x.cat).toLowerCase().includes(qFilter.toLowerCase())).forEach(x=>(groups[x.cat]=groups[x.cat]||[]).push(x));
+  const curCat = q && q.cat;
+  const ORDER=["Dev: Languages","Dev: Web","Dev: Tools & Infra","Dev: CS","Countries","Capitals & Cities","US States","Elements","Science & Space","Maths","Sport","Film & TV","Music","Games","Culture","Food & Drink","Everyday","Custom"];
+  const rank=c=>{const i=ORDER.indexOf(c);return i<0?99:i};
+  const qlist = Object.entries(groups).sort((x,y)=>rank(x[0])-rank(y[0])).map(([c,qs])=>{
+    const open = qFilter || openCats.has(c) || c===curCat;
+    const left = qs.filter(x=>!S.used.includes(x.id)).length;
+    return `<div class="qcat" data-cat="${esc(c)}">${open?"▾":"▸"} ${esc(c)} <span class="n">${left}/${qs.length}</span></div>`+(!open?"":qs.map(x=>
+    `<div class="qitem ${x.id===S.current?"active":""} ${S.used.includes(x.id)?"used":""}" data-q="${x.id}"><span>${esc(x.q)}</span><span class="n">${parseAnswers(x.id[0]==="b"?BANK[+x.id.slice(1)]:S.custom[+x.id.slice(1)]).length}${x.open?"+":""}</span></div>`).join(""));
+  }).join("");
+
+  const ansList = q ? parseAnswers(q).filter(e=>!aFilter||e.aliases.some(a=>norm(a).includes(norm(aFilter)))) : [];
+
+  $("#app").innerHTML = `
+  <header>
+    <h1>🎯 Who Wants to Be a Krillianaire — Host</h1>
+    <button id="board">Open scoreboard window</button>
+    <button id="undo" ${S.undo.length?"":"disabled"}>↶ Undo</button>
+    <button id="newgame" class="danger">New game</button>
+  </header>
+  <div class="grid">
+    <div class="panel">
+      <h2>Questions</h2>
+      <div class="row"><input data-f="qf" id="qf" placeholder="Search questions…" value="${esc(qFilter)}"><button id="rand" title="Random unused question">🎲 Random</button></div>
+      <div class="qlist">${qlist}</div>
+      <details style="margin-top:10px"><summary>➕ Add your own question</summary>
+        <input id="cq" placeholder="Question, e.g. Name a Beatles song" style="margin-top:6px">
+        <textarea id="ca" rows="4" placeholder="Answers, comma separated. Use | for alternative spellings (UK|Britain), * for debatable." style="margin-top:6px"></textarea>
+        <label class="row" style="margin-top:6px"><input type="checkbox" id="co" style="width:auto"> List isn't complete (unlisted answers allowed)</label>
+        <button id="addq" class="primary" style="margin-top:6px">Add question</button>
+      </details>
+    </div>
+
+    <div>
+      ${winner?`<div class="winner">🏆 ${esc(winner.name)} wins!</div>`:""}
+      <div class="panel">
+        ${q?`
+          <div class="meta">${esc(q.cat)} · ${parseAnswers(q).length} listed answers${q.open?" (not exhaustive)":""}</div>
+          <div class="prompt">${esc(q.q)}</div>
+          <table>
+            <tr><th style="width:22%">Player</th><th style="width:28%">Their answer</th><th>Check</th><th style="width:120px">Verdict</th></tr>
+            ${rows.map(r=>`<tr>
+              <td><b>${esc(r.p.name)}</b><br>${hearts(r.p.lives,S.startLives)}</td>
+              ${ansCell(r.p.id, r.text)}
+              <td>${r.reasons.map(([t,s])=>`<span class="badge b-${t}">${esc(s)}</span>`).join("")}</td>
+              <td><select data-ov="${r.p.id}">
+                <option value="auto" ${r.ov==="auto"?"selected":""}>Auto</option>
+                <option value="safe" ${r.ov==="safe"?"selected":""}>Force safe</option>
+                <option value="lose" ${r.ov==="lose"?"selected":""}>Force lose</option></select>
+                <div class="${r.loses?"verdict-lose":"verdict-safe"}">${r.loses?"− 1 life":"Safe"}</div></td>
+            </tr>`).join("")}
+            ${host?`<tr class="hostrow">
+              <td><b>🎩 You (host)</b><br><span class="meta">can't lose lives</span></td>
+              ${ansCell("host", host.text)}
+              <td>${host.reasons.map(([t,s])=>`<span class="badge b-${t}">${esc(s)}</span>`).join("")}${(c=>c.length?`<span class="badge b-bad">Catches: ${esc(c.join(", "))}</span>`:"")(rows.filter(r=>host.key&&r.key===host.key).map(r=>r.p.name))}</td>
+              <td><button id="hostRand" class="small">🎲 Random</button></td>
+            </tr>`:""}
+          </table>
+
+          <label class="row" style="margin-top:10px"><input type="checkbox" id="secOn" style="width:auto" ${S.secret.on?"checked":""}> Play against me: players only lose a life if they match my answer (matching each other is fine)</label>
+
+          <div class="row" style="margin-top:14px">
+            <button id="apply" class="primary">✅ Apply round (${rows.filter(r=>r.loses).length} lose a life)</button>
+            <button id="clearAns">Clear answers</button>
+            <span class="meta">Clashes are matched on the canonical answer, so “Holland” clashes with “Netherlands”. ≈ means a close spelling match. Check it.</span>
+          </div>
+        `:`<div class="prompt">${S.used.length?`Round ${S.used.length} done. Pick the next question →`:"Pick a question on the left →"}</div><p class="meta">Or hit 🎲 Random. Enter each player's answer and the app flags clashes, invalid answers and spelling matches. Then apply the round.</p>`}
+      </div>
+
+      ${q?`<div class="panel" style="margin-top:16px">
+        <h2>Answer reference <span style="text-transform:none;font-weight:400">— <span style="color:var(--bad)">red</span> = clash, <span style="color:var(--ok)">green</span> = given/safe, <span style="color:var(--warn)">amber</span> = debatable</span></h2>
+        <input data-f="af" id="af" placeholder="Look up an answer…" value="${esc(aFilter)}">
+        <div class="meta" id="refHint" style="margin-top:6px"></div>
+        <div class="answers">${ansList.map(e=>{
+          const cls = clashKeys.has(e.canon)?"taken":takenKeys.has(e.canon)?"picked":e.deb?"deb":"";
+          return `<div class="${cls}" data-ref="${esc(e.canon)}" title="${esc(e.aliases.join(" / "))}">${esc(e.canon)}${e.aliases.length>1?` <span class="meta">(${esc(e.aliases.slice(1).join(", "))})</span>`:""}${e.deb?" *":""}</div>`}).join("")||'<span class="meta">No match in list.</span>'}</div>
+      </div>`:""}
+    </div>
+
+    <div class="panel">
+      <h2>Lives · ${al.length} of ${S.players.length} left</h2>
+      ${S.players.map(p=>`<div class="player ${p.lives<=0?"out":""}">
+        <span class="name">${esc(p.name)}</span>${hearts(p.lives,S.startLives)}
+        <button class="small" data-dec="${p.id}">−</button><button class="small" data-inc="${p.id}">+</button></div>`).join("")}
+      <div class="row" style="margin-top:10px"><input id="newP" placeholder="Add player…"><button id="addP">Add</button></div>
+      <label class="row" style="margin-top:12px"><input type="checkbox" id="blank" style="width:auto" ${S.blankLoses?"checked":""}> No answer loses a life</label>
+      <label class="row"><input type="checkbox" id="invalid" style="width:auto" ${S.invalidLoses?"checked":""}> Wrong answer (not in list) loses a life</label>
+      <h2 style="margin-top:16px">History</h2>
+      <div class="log">${S.log.map(l=>`<div>${l}</div>`).join("")||"Nothing yet."}</div>
+    </div>
+  </div>`;
+  updateRefHint();
+  if(focus){ const el=document.querySelector(`[data-f="${focus}"]`); if(el){ el.focus(); try{el.setSelectionRange(caret,caret)}catch(e){} } }
+}
+
+function ansCell(id,text){
+  id=String(id);
+  const s = String(sugFor)===id ? currentSugs() : [];
+  return `<td class="anscell"><input data-f="a${id}" data-ans="${id}" class="${id===refTarget()?"target":""}" value="${esc(text)}" placeholder="${id==="host"?"your answer…":"type answer…"}" autocomplete="off">${
+    s.length?`<div class="sug">${s.map((x,i)=>`<div class="${i===sugIdx?"on":""}" data-pick="${id}" data-val="${esc(x.e.canon)}">${esc(x.e.canon)}${x.via!==x.e.canon?`<span class="meta">(${esc(x.via)})</span>`:""}</div>`).join("")}</div>`:""}</td>`;
+}
+
+function updateRefHint(){
+  const h=$("#refHint"); if(!h) return;
+  const id=refTarget(), p=id==="host"?{name:"you (host)"}:id&&S.players.find(x=>String(x.id)===id);
+  h.innerHTML = p ? `👆 Click an answer to fill it in for <b>${esc(p.name)}</b>` : "Everyone has an answer. Click a player's box first to change theirs.";
+}
+
+function renderSetup(){
+  $("#app").innerHTML = `<div class="setup panel">
+    <h1>🎯 Who Wants to Be a Krillianaire</h1>
+    <p class="meta">Everyone answers. If anyone else gives the same answer, you both lose a life. Last one standing wins.</p>
+    <label>Players (one per line)</label>
+    <textarea id="names" rows="10" placeholder="Alice\nBob\nCharlie">${esc(S.players.map(p=>p.name).join("\n"))}</textarea>
+    <label>Lives each</label>
+    <div class="row"><button class="lv ${S.startLives==3?"primary":""}" data-l="3">3</button><button class="lv ${S.startLives==5?"primary":""}" data-l="5">5</button>
+      <input type="number" id="lives" min="1" max="20" value="${S.startLives}" style="width:80px"></div>
+    <div style="margin-top:20px"><button id="start" class="primary">Start game →</button></div>
+  </div>`;
+}
+
+function renderBoard(){
+  document.title="Scoreboard";
+  $("#app").innerHTML = `<header><h1>🎯 Who Wants to Be a Krillianaire — ${alive().length} still in</h1></header>
+  <div class="board">${S.players.map(p=>`<div class="card ${p.lives<=0?"out":""}"><div class="name">${esc(p.name)}</div>${p.lives>0?hearts(p.lives,S.startLives):'<div style="font-size:28px">OUT</div>'}</div>`).join("")}</div>`;
+}
+
+// ---------- Events ----------
+document.addEventListener("mousedown",e=>{
+  const s=e.target.closest("[data-pick]"); if(!s) return;
+  e.preventDefault(); pick(s.dataset.pick,s.dataset.val);
+});
+document.addEventListener("focusin",e=>{
+  const id=e.target.dataset&&e.target.dataset.ans;
+  if(id && lastAns!==id){ lastAns=id; document.querySelectorAll("[data-ans]").forEach(x=>x.classList.toggle("target",x.dataset.ans===id)); updateRefHint(); }
+  if(id && String(sugFor)!==id && justPicked!==id){ sugFor=id; sugIdx=0; render(); }
+});
+document.addEventListener("click",e=>{
+  if(sugFor!=null && !e.target.closest("[data-ans],.sug")){ sugFor=null; if(!e.target.closest("button,[data-q]")) render(); }
+  const cat=e.target.closest("[data-cat]");
+  if(cat){ const c=cat.dataset.cat; openCats.has(c)?openCats.delete(c):openCats.add(c); return render(); }
+  const t=e.target.closest("button,[data-q],[data-ref]"); if(!t) return;
+  if(t.dataset.ref) return fillFromRef(t.dataset.ref);
+  if(t.dataset.q||["rand","apply","clearAns"].includes(t.id)) lastAns=null;
+  if(t.dataset.q && S.used.includes(t.dataset.q)) return alertBox("That question has already been used this game.");
+  if(t.dataset.q){ S.current=t.dataset.q; S.answers={}; S.overrides={}; S.secret.list=[]; S.secret.shown=false; aFilter=""; S.secret.on = alive().length<=2; return save(); }
+  if(t.classList.contains("lv")){ S.startLives=+t.dataset.l; return save(); }
+  if(t.dataset.dec||t.dataset.inc){ snapshot(); const p=S.players.find(x=>x.id==(t.dataset.dec||t.dataset.inc)); p.lives=Math.max(0,p.lives+(t.dataset.dec?-1:1)); return save(); }
+  switch(t.id){
+    case "start": {
+      const names=$("#names").value.split("\n").map(s=>s.trim()).filter(Boolean);
+      if(names.length<2) return alertBox("Add at least two players.");
+      const lives=Math.max(1,+$("#lives").value||5);
+      S.startLives=lives; S.players=names.map((n,i)=>({id:i+1,name:n,lives})); S.phase="play"; S.log=[]; S.used=[]; S.undo=[]; S.current=null; return save();
+    }
+    case "newgame": if(t.dataset.confirm){ S.phase="setup"; S.players.forEach(p=>p.lives=S.startLives); return save(); } t.dataset.confirm=1; t.textContent="Click again to confirm"; setTimeout(()=>{t.textContent="New game";delete t.dataset.confirm},3000); return;
+    case "undo": return undo();
+    case "board": return window.open(location.pathname+"#board","board","width=1100,height=700");
+    case "rand": { const pool=allQs().filter(x=>!S.used.includes(x.id)&&x.id!==S.current); if(!pool.length) return; const x=pool[Math.floor(Math.random()*pool.length)];
+      S.current=x.id; S.answers={}; S.overrides={}; S.secret.list=[]; S.secret.shown=false; S.secret.on=alive().length<=2; aFilter=""; return save(); }
+    case "apply": return applyRound();
+    case "clearAns": S.answers={}; S.overrides={}; return save();
+    case "hostRand": { const list=parseAnswers(qById(S.current)).filter(e=>!e.deb); S.answers.host=list[Math.floor(Math.random()*list.length)].canon; return save(); }
+    case "addP": { const n=$("#newP").value.trim(); if(!n) return; snapshot(); S.players.push({id:Math.max(0,...S.players.map(p=>p.id))+1,name:n,lives:S.startLives}); return save(); }
+    case "addq": { const qq=$("#cq").value.trim(), aa=$("#ca").value.trim(); if(!qq) return alertBox("Enter a question.");
+      S.custom.push({q:qq,a:aa,open:$("#co").checked||!aa}); return save(); }
+  }
+});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.ans){ S.answers[t.dataset.ans]=t.value; sugFor=t.dataset.ans; sugIdx=0; return save(); }
+  if(t.id==="qf"){ qFilter=t.value; return render(); }
+  if(t.id==="af"){ aFilter=t.value; return render(); }
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.ov){ S.overrides[t.dataset.ov]= t.value==="auto"?undefined:t.value; return save(); }
+  if(t.id==="secOn"){ S.secret.on=t.checked; return save(); }
+  if(t.id==="blank"){ S.blankLoses=t.checked; return save(); }
+  if(t.id==="invalid"){ S.invalidLoses=t.checked; return save(); }
+  if(t.id==="lives"){ S.startLives=Math.max(1,+t.value||5); return save(); }
+});
+document.addEventListener("keydown",e=>{
+  if(e.target.dataset.ans && sugFor!=null){
+    const s=currentSugs();
+    if(s.length && (e.key==="ArrowDown"||e.key==="ArrowUp")){ e.preventDefault(); sugIdx=(sugIdx+(e.key==="ArrowDown"?1:-1)+s.length)%s.length; return render(); }
+    if(e.key==="Escape"){ sugFor=null; return render(); }
+    if(e.key==="Enter" && s.length){ const pid=e.target.dataset.ans; pick(pid,s[Math.min(sugIdx,s.length-1)].e.canon);
+      const ins=[...document.querySelectorAll("[data-ans]")]; const i=ins.findIndex(x=>x.dataset.ans===pid); if(ins[i+1]) ins[i+1].focus(); return; }
+  }
+  if(e.key!=="Enter") return;
+  if(e.target.id==="newP") return $("#addP").click();
+  if(e.target.dataset.ans){ const ins=[...document.querySelectorAll("[data-ans]")]; const i=ins.indexOf(e.target); if(ins[i+1]) ins[i+1].focus(); }
+});
+function alertBox(msg){ const d=document.createElement("div"); d.textContent=msg; d.style.cssText="position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#c53030;color:#fff;padding:10px 16px;border-radius:8px;z-index:9"; document.body.appendChild(d); setTimeout(()=>d.remove(),2500); }
+// Keep the scoreboard window in sync with the host window.
+window.addEventListener("storage",e=>{ if(e.key===LS){ S=load()||S; render(); } });
+window.addEventListener("hashchange",render);
+render();
+</script>
