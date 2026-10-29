@@ -1,0 +1,95 @@
+import type { QuestionDef } from "../../domain/types.ts";
+
+export const sport: QuestionDef[] = [
+  {
+    category: "Sport",
+    prompt: "Name a club that has played in the Premier League",
+    listKey: "pl",
+    answers: [
+      "Arsenal", "Aston Villa|Villa", "Barnsley", "Birmingham City|Birmingham",
+      "Blackburn Rovers|Blackburn", "Blackpool", "Bolton Wanderers|Bolton",
+      "AFC Bournemouth|Bournemouth", "Bradford City|Bradford", "Brentford",
+      "Brighton & Hove Albion|Brighton", "Burnley", "Cardiff City|Cardiff",
+      "Charlton Athletic|Charlton", "Chelsea", "Coventry City|Coventry", "Crystal Palace|Palace",
+      "Derby County|Derby", "Everton", "Fulham", "Huddersfield Town|Huddersfield",
+      "Hull City|Hull", "Ipswich Town|Ipswich", "Leeds United|Leeds", "Leicester City|Leicester",
+      "Liverpool", "Luton Town|Luton", "Manchester City|Man City",
+      "Manchester United|Man United|Man Utd", "Middlesbrough|Boro", "Newcastle United|Newcastle",
+      "Norwich City|Norwich", "Nottingham Forest|Forest", "Oldham Athletic|Oldham", "Portsmouth",
+      "Queens Park Rangers|QPR", "Reading", "Sheffield United", "Sheffield Wednesday",
+      "Southampton", "Stoke City|Stoke", "Sunderland", "Swansea City|Swansea",
+      "Swindon Town|Swindon", "Tottenham Hotspur|Tottenham|Spurs", "Watford",
+      "West Bromwich Albion|West Brom|WBA", "West Ham United|West Ham", "Wigan Athletic|Wigan",
+      "Wimbledon", "Wolverhampton Wanderers|Wolves",
+    ],
+  },
+  {
+    category: "Sport",
+    prompt: "Name a sport at the Paris 2024 Olympics",
+    answers: [
+      "Archery", "Artistic Swimming|Synchronised Swimming", "Athletics|Track and Field",
+      "Badminton", "Basketball", "3x3 Basketball", "Boxing", "Breaking|Breakdancing",
+      "Canoeing|Canoe|Kayaking", "Cycling", "Diving",
+      "Equestrian|Horse Riding|Dressage|Showjumping", "Fencing", "Football|Soccer", "Golf",
+      "Gymnastics", "Handball", "Hockey|Field Hockey", "Judo", "Modern Pentathlon", "Rowing",
+      "Rugby Sevens|Rugby", "Sailing", "Shooting", "Skateboarding", "Sport Climbing|Climbing",
+      "Surfing", "Swimming", "Table Tennis|Ping Pong", "Taekwondo", "Tennis", "Trampoline",
+      "Triathlon", "Volleyball", "Beach Volleyball", "Water Polo", "Weightlifting", "Wrestling",
+      "Marathon Swimming",
+    ],
+  },
+  {
+    category: "Sport",
+    prompt: "Name a London club that has played in the Premier League",
+    answers: [
+      "Arsenal", "Brentford", "Charlton Athletic|Charlton", "Chelsea", "Crystal Palace|Palace",
+      "Fulham", "Queens Park Rangers|QPR", "Tottenham Hotspur|Tottenham|Spurs",
+      "West Ham United|West Ham", "Wimbledon",
+    ],
+  },
+  {
+    category: "Sport",
+    prompt: "Name a tennis Grand Slam tournament",
+    answers: [
+      "Australian Open", "French Open|Roland Garros", "Wimbledon", "US Open",
+    ],
+  },
+  {
+    category: "Sport",
+    prompt: "Name a Formula 1 team (past or present)",
+    open: true,
+    answers: [
+      "Ferrari", "McLaren", "Mercedes", "Red Bull", "Williams", "Aston Martin", "Alpine", "Haas",
+      "Racing Bulls|RB|VCARB", "Sauber|Kick Sauber", "Audi", "Cadillac", "Lotus", "Brabham",
+      "Tyrrell", "Jordan", "Benetton", "BAR|British American Racing", "Toyota", "Honda", "Minardi",
+      "Force India", "Racing Point", "Toro Rosso|AlphaTauri", "Renault", "Jaguar", "Stewart",
+      "Ligier", "March", "Arrows", "Brawn GP|Brawn", "Cooper", "BRM", "Vanwall", "Maserati",
+      "Alfa Romeo", "Virgin", "Manor|Marussia", "HRT", "Caterham", "Super Aguri", "Spyker",
+      "Midland", "Prost", "Lola", "Shadow", "Hesketh", "Wolf", "Penske", "Matra",
+    ],
+  },
+  {
+    category: "Sport",
+    prompt: "Name a Formula 1 world champion",
+    open: true,
+    answers: [
+      "Lewis Hamilton|Hamilton", "Michael Schumacher|Schumacher", "Max Verstappen|Verstappen",
+      "Sebastian Vettel|Vettel", "Fernando Alonso|Alonso", "Ayrton Senna|Senna",
+      "Alain Prost|Prost", "Niki Lauda|Lauda", "Juan Manuel Fangio|Fangio", "Jackie Stewart",
+      "Jim Clark", "Nelson Piquet|Piquet", "Nico Rosberg", "Kimi Raikkonen|Raikkonen",
+      "Jenson Button|Button", "Mika Hakkinen|Hakkinen", "Damon Hill", "Graham Hill",
+      "Nigel Mansell|Mansell", "Jack Brabham|Brabham", "Jacques Villeneuve|Villeneuve",
+      "Emerson Fittipaldi|Fittipaldi", "James Hunt|Hunt", "Mario Andretti|Andretti", "Alan Jones",
+      "Keke Rosberg", "Jody Scheckter|Scheckter", "Denny Hulme|Hulme", "John Surtees|Surtees",
+      "Jochen Rindt|Rindt", "Phil Hill", "Mike Hawthorn|Hawthorn", "Alberto Ascari|Ascari",
+      "Giuseppe Farina|Nino Farina|Farina", "Lando Norris*|Norris",
+    ],
+  },
+  {
+    category: "Sport",
+    prompt: "Name a piece in chess",
+    answers: [
+      "King", "Queen", "Rook|Castle", "Bishop", "Knight|Horse", "Pawn",
+    ],
+  },
+];
